@@ -19,14 +19,15 @@ PHASE 0 — Setup
 
 PHASE 1 — Data layer
 --------------------
-- Two models with a relation: Patient 1:N Consultation
-  (one patient has many consultations).
+- Three models: Patient, Doctor, Appointment. Each appointment belongs
+  to one patient and one doctor (Patient 1:N Appointment, Doctor 1:N
+  Appointment, plus a doctor-patient many-to-many through Appointment).
 - Migrations + register the models in Django admin.
 
 PHASE 2 — Screens
 -----------------
-- Screen 1: create/schedule patients and consultations.
-- Screen 2: monitor and search consultations.
+- Screen 1: register patients and doctors, schedule appointments.
+- Screen 2: monitor and search appointments.
 - Responsive layout that works on mobile and PC.
 
 PHASE 3 — HTMX CRUD
@@ -39,7 +40,7 @@ PHASE 3 — HTMX CRUD
 
 PHASE 4 — Search
 ----------------
-- Search consultations/patients by name as you type.
+- Search appointments/patients by name as you type.
   (The spec requires at least one of: search, pagination, or
   infinite scroll — we go with search.)
 
@@ -47,15 +48,3 @@ PHASE 5 — Deployment
 --------------------
 - Dockerfile + docker-compose, switch the DB to Postgres.
 - Confirm the app runs in a container.
-
-PHASE 6 — Final check
----------------------
-Make sure every requirement is met:
-  - Two screens
-  - Responsive (mobile + PC)
-  - Two models with a 1:N (or N:M) relation
-  - HTMX CRUD: create / read / update / delete
-  - At least one of: search / pagination / infinite scroll
-
-
-Division of work and deadlines: TBD with the team.
