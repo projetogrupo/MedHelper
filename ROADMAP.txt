@@ -19,7 +19,7 @@ PHASE 0 — Setup
 
 PHASE 1 — Data layer
 --------------------
-- Two models with a relation: Paciente 1:N Consulta
+- Two models with a relation: Patient 1:N Consultation
   (one patient has many consultations).
 - Migrations + register the models in Django admin.
 
