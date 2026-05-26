@@ -1,0 +1,61 @@
+MEDHELPER — PROJECT ROADMAP
+===========================
+
+What we're building: a Django + HTMX web app to help medical
+professionals schedule and monitor patients.
+
+Stack: Python/Django, Django templates, HTMX, SQLite (Postgres for
+Docker), HTML + CSS (Flexbox + media queries), Docker/docker-compose.
+
+Note: this is an initial proposal aimed at meeting the minimal project
+requirements. It's a starting point and can change as the team sees fit.
+
+
+PHASE 0 — Setup
+---------------
+- Create the Django project and app.
+- Base settings, urls, .gitignore, requirements.txt.
+- Base template + skeleton CSS.
+
+PHASE 1 — Data layer
+--------------------
+- Two models with a relation: Paciente 1:N Consulta
+  (one patient has many consultations).
+- Migrations + register the models in Django admin.
+
+PHASE 2 — Screens
+-----------------
+- Screen 1: create/schedule patients and consultations.
+- Screen 2: monitor and search consultations.
+- Responsive layout that works on mobile and PC.
+
+PHASE 3 — HTMX CRUD
+-------------------
+- Create  (hx-post)
+- Read    (hx-get)
+- Update  (hx-put)
+- Delete  (hx-delete)
+- Wire up CSRF for HTMX requests.
+
+PHASE 4 — Search
+----------------
+- Search consultations/patients by name as you type.
+  (The spec requires at least one of: search, pagination, or
+  infinite scroll — we go with search.)
+
+PHASE 5 — Deployment
+--------------------
+- Dockerfile + docker-compose, switch the DB to Postgres.
+- Confirm the app runs in a container.
+
+PHASE 6 — Final check
+---------------------
+Make sure every requirement is met:
+  - Two screens
+  - Responsive (mobile + PC)
+  - Two models with a 1:N (or N:M) relation
+  - HTMX CRUD: create / read / update / delete
+  - At least one of: search / pagination / infinite scroll
+
+
+Division of work and deadlines: TBD with the team.
