@@ -1,0 +1,52 @@
+MEDHELPER — PROJECT ROADMAP
+===========================
+
+What we're building: a Django + HTMX web app to help medical
+professionals schedule and monitor patients.
+
+Stack: Python/Django, Django templates, HTMX, SQLite (Postgres for
+Docker), HTML + CSS (Flexbox + media queries), Docker/docker-compose.
+
+Note: this is an initial proposal aimed at meeting the minimal project
+requirements. It's a starting point and can change as the team sees fit.
+
+
+PHASE 0 — Setup
+---------------
+- Create the Django project and app.
+- Base settings, urls, .gitignore, requirements.txt.
+- Dockerfile + docker-compose with Postgres, so everyone develops in
+  the same environment from the start.
+- Base template + skeleton CSS.
+
+PHASE 1 — Data layer
+--------------------
+- Three models: Patient, Doctor, Appointment. Each appointment belongs
+  to one patient and one doctor (Patient 1:N Appointment, Doctor 1:N
+  Appointment, plus a doctor-patient many-to-many through Appointment).
+- Migrations + register the models in Django admin.
+
+PHASE 2 — Screens
+-----------------
+- Screen 1: register patients and doctors, schedule appointments.
+- Screen 2: monitor and search appointments.
+- Responsive layout that works on mobile and PC.
+
+PHASE 3 — HTMX CRUD
+-------------------
+- Create  (hx-post)
+- Read    (hx-get)
+- Update  (hx-put)
+- Delete  (hx-delete)
+- Wire up CSRF for HTMX requests.
+
+PHASE 4 — Search
+----------------
+- Search appointments/patients by name as you type.
+  (The spec requires at least one of: search, pagination, or
+  infinite scroll — we go with search.)
+
+PHASE 5 — Deployment
+--------------------
+- Deploy the containerized app (Docker/Postgres already set up in Phase 0).
+- Confirm the app runs in production.
