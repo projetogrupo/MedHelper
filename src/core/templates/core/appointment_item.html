@@ -1,0 +1,8 @@
+<li id="appointment-{{ appointment.id }}">
+  {% if appointment.patient %}{{ appointment.patient }}{% else %}(no patient){% endif %}
+  with
+  {% if appointment.doctor %}{{ appointment.doctor }}{% else %}(no doctor){% endif %}
+  on {{ appointment.appointment_date }}
+  - {{ appointment.get_status_display }}
+  - {{ appointment.reason }}
+</li>
