@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}MedHelper{% endblock %}</title>
+
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+  {# HTMX — será adicionado na Fase 3 #}
+  {# <script src="https://unpkg.com/htmx.org@2.0.4" defer></script> #}
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="{% url 'index' %}" class="logo">
+        <span class="logo-icon">✚</span>
+        <span class="logo-text">MedHelper</span>
+      </a>
+
+      <nav class="main-nav">
+        {# Links de navegação virão aqui na Fase 2 #}
+        <a href="#">Consultas</a>
+        <a href="#">Pacientes</a>
+        <a href="#">Médicos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    {# Mensagens flash do Django (erros de form, confirmações, etc.) #}
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="message message--{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>MedHelper &mdash; MAC0350</p>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

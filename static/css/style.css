@@ -1,0 +1,272 @@
+/* ============================================================
+   MedHelper — style.css (esqueleto)
+   Paleta:
+     --green-light  #e2fcd6  (fundos suaves, badges)
+     --teal         #14967f  (ação primária, links ativos)
+     --blue-deep    #095d7e  (ação secundária, header)
+     --sky-light    #ccecee  (bordas, separadores, hover)
+     --off-white    #f1f9ff  (fundo geral da página)
+   ============================================================ */
+
+/* ── 1. Tokens ─────────────────────────────────────────────── */
+:root {
+  --green-light: #e2fcd6;
+  --teal:        #14967f;
+  --blue-deep:   #095d7e;
+  --sky-light:   #ccecee;
+  --off-white:   #f1f9ff;
+
+  --text-primary:   #0f2b38;   /* quase-preto azulado */
+  --text-secondary: #4a6570;
+  --text-on-dark:   #f1f9ff;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  --font-body:    'Segoe UI', system-ui, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.75rem;
+  --space-xl: 2.5rem;
+
+  --max-width: 1100px;
+}
+
+/* ── 2. Reset mínimo ────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--off-white);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── 3. Header ──────────────────────────────────────────────── */
+.site-header {
+  background-color: var(--blue-deep);
+  color: var(--text-on-dark);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.header-inner {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-on-dark);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: bold;
+}
+
+.logo:hover {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+  color: var(--green-light);
+}
+
+.main-nav {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.main-nav a {
+  color: var(--sky-light);
+  font-size: 0.95rem;
+  transition: color 0.15s;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+  color: var(--green-light);
+  text-decoration: none;
+}
+
+/* ── 4. Conteúdo principal ──────────────────────────────────── */
+.site-main {
+  flex: 1;
+  max-width: var(--max-width);
+  width: 100%;
+  margin-inline: auto;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+/* ── 5. Footer ──────────────────────────────────────────────── */
+.site-footer {
+  text-align: center;
+  padding: var(--space-md);
+  background-color: var(--sky-light);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+/* ── 6. Mensagens flash ─────────────────────────────────────── */
+.messages {
+  list-style: none;
+  margin-bottom: var(--space-lg);
+}
+
+.message {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-sm);
+  font-size: 0.9rem;
+}
+
+.message--success { background-color: var(--green-light); color: #1a4a2e; }
+.message--error   { background-color: #fde8e8;            color: #7a1f1f; }
+.message--info    { background-color: var(--sky-light);   color: var(--blue-deep); }
+.message--warning { background-color: #fff3cd;            color: #664d03; }
+
+/* ── 7. Botões ──────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+
+.btn-primary {
+  background-color: var(--teal);
+  color: var(--text-on-dark);
+}
+
+.btn-secondary {
+  background-color: var(--blue-deep);
+  color: var(--text-on-dark);
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+/* ── 8. Cards ───────────────────────────────────────────────── */
+.card {
+  background-color: #fff;
+  border: 1px solid var(--sky-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+}
+
+/* ── 9. Formulários ─────────────────────────────────────────── */
+.form-group {
+  margin-bottom: var(--space-md);
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1.5px solid var(--sky-light);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-primary);
+  background-color: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(20, 150, 127, 0.15);
+}
+
+/* ── 10. Tabelas ────────────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+thead th {
+  background-color: var(--blue-deep);
+  color: var(--text-on-dark);
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--off-white);
+}
+
+tbody tr:hover {
+  background-color: var(--sky-light);
+}
+
+tbody td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--sky-light);
+}
+
+/* ── 11. Responsivo ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .main-nav {
+    gap: var(--space-md);
+    flex-wrap: wrap;
+  }
+
+  .site-main {
+    padding: var(--space-lg) var(--space-md);
+  }
+}
