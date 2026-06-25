@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=medhelper
+      - POSTGRES_USER=medhelper
+      - POSTGRES_PASSWORD=medhelper
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_DB=medhelper
+      - POSTGRES_USER=medhelper
+      - POSTGRES_PASSWORD=medhelper
+      - POSTGRES_HOST=db
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
