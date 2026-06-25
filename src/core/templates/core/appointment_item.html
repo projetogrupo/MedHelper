@@ -5,4 +5,10 @@
   on {{ appointment.appointment_date }}
   - {{ appointment.get_status_display }}
   - {{ appointment.reason }}
+  <button hx-delete="{% url 'appointment-delete' appointment.id %}"
+          hx-target="closest li"
+          hx-swap="outerHTML"
+          hx-confirm="Delete this appointment?">
+    Delete
+  </button>
 </li>

@@ -124,6 +124,14 @@ def test_delete_appointment_not_found(client):
 
 
 @pytest.mark.django_db
+def test_list_appointments_renders_delete_control(client, appointment):
+    response = client.get(reverse("appointment-list"))
+    delete_url = reverse("appointment-delete", args=[appointment.id])
+    assert response.status_code == 200
+    assert f'hx-delete="{delete_url}"'.encode() in response.content
+
+
+@pytest.mark.django_db
 def test_list_appointments_null_patient(client, appointment):
     appointment.patient = None
     appointment.save()
