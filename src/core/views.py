@@ -71,3 +71,13 @@ def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     appointment.delete()
     return HttpResponse(status=200)
+
+
+@require_http_methods(["POST"])
+def cancel_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if not appointment.is_cancellable:
+        return render(request, "core/appointment_item.html", {"appointment": appointment}, status=422)
+    appointment.status = Appointment.STATUS_CANCELLED
+    appointment.save()
+    return render(request, "core/appointment_item.html", {"appointment": appointment}, status=200)
