@@ -138,3 +138,44 @@ def test_list_appointments_null_patient(client, appointment):
     response = client.get(reverse("appointment-list"))
     assert response.status_code == 200
     assert b"(no patient)" in response.content
+
+
+@pytest.mark.django_db
+def test_cancel_appointment_scheduled(client, appointment):
+    response = client.post(reverse("appointment-cancel", args=[appointment.id]))
+    appointment.refresh_from_db()
+    assert response.status_code == 200
+    assert appointment.status == "cancelled"
+    assert b"Cancelled" in response.content
+
+
+@pytest.mark.django_db
+def test_cancel_appointment_completed(client, appointment):
+    appointment.status = "completed"
+    appointment.save()
+    response = client.post(reverse("appointment-cancel", args=[appointment.id]))
+    appointment.refresh_from_db()
+    assert response.status_code == 422
+    assert appointment.status == "completed"
+
+
+@pytest.mark.django_db
+def test_cancel_appointment_already_cancelled(client, appointment):
+    appointment.status = "cancelled"
+    appointment.save()
+    response = client.post(reverse("appointment-cancel", args=[appointment.id]))
+    assert response.status_code == 422
+
+
+@pytest.mark.django_db
+def test_cancel_appointment_not_found(client):
+    response = client.post(reverse("appointment-cancel", args=[999999]))
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_list_appointments_renders_cancel_control(client, appointment):
+    response = client.get(reverse("appointment-list"))
+    cancel_url = reverse("appointment-cancel", args=[appointment.id])
+    assert response.status_code == 200
+    assert f'hx-post="{cancel_url}"'.encode() in response.content
