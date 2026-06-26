@@ -95,3 +95,7 @@ class Appointment(models.Model):
 			f"{self.doctor} on "
 			f"{self.appointment_date:%Y-%m-%d %H:%M}"
 		)
+
+	@property
+	def is_cancellable(self):
+		return self.status == self.STATUS_SCHEDULED

@@ -1,0 +1,16 @@
+.git
+.gitignore
+.venv/
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+db.sqlite3
+data/
+.env
+Dockerfile
+docker-compose.yaml
+.dockerignore
+*.md
+LICENSE
+ROADMAP.txt

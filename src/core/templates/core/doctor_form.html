@@ -1,0 +1,4 @@
+<form hx-post="{% url 'doctor-create' %}" hx-target="#doctor-list" hx-swap="beforeend">
+  {{ form.as_p }}
+  <button type="submit">Save doctor</button>
+</form>

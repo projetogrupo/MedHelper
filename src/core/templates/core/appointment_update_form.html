@@ -1,0 +1,6 @@
+<form hx-put="{% url 'appointment-update' appointment.id %}"
+      hx-target="#appointment-{{ appointment.id }}" hx-swap="outerHTML">
+  <p class="form-error">{{ error }}</p>
+  {{ form.as_p }}
+  <button type="submit">Save changes</button>
+</form>

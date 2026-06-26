@@ -1,0 +1,7 @@
+<ul id="appointment-list">
+  {% for appointment in appointments %}
+    {% include "core/appointment_item.html" %}
+  {% empty %}
+    <li class="no-results">No appointments found.</li>
+  {% endfor %}
+</ul>

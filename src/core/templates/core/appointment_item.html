@@ -1,0 +1,22 @@
+<li id="appointment-{{ appointment.id }}">
+  {% if appointment.patient %}{{ appointment.patient }}{% else %}(no patient){% endif %}
+  with
+  {% if appointment.doctor %}{{ appointment.doctor }}{% else %}(no doctor){% endif %}
+  on {{ appointment.appointment_date }}
+  - {{ appointment.get_status_display }}
+  - {{ appointment.reason }}
+  {% if appointment.is_cancellable %}
+  <button hx-post="{% url 'appointment-cancel' appointment.id %}"
+          hx-target="closest li"
+          hx-swap="outerHTML"
+          hx-confirm="Cancel this appointment?">
+    Cancel
+  </button>
+  {% endif %}
+  <button hx-delete="{% url 'appointment-delete' appointment.id %}"
+          hx-target="closest li"
+          hx-swap="outerHTML"
+          hx-confirm="Delete this appointment?">
+    Delete
+  </button>
+</li>
