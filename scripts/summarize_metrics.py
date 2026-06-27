@@ -31,7 +31,10 @@ def main():
     cc_data = load(out_dir / "cc.json")
     mi_data = load(out_dir / "mi.json")
     raw_data = load(out_dir / "raw.json")
-    pylint_data = load(out_dir / "pylint.json")
+    try:
+        pylint_data = load(out_dir / "pylint.json")
+    except (json.JSONDecodeError, FileNotFoundError):
+        pylint_data = []
 
     complexities = [b["complexity"] for b in iter_blocks(cc_data)]
     mi_scores = [v["mi"] for v in mi_data.values()]

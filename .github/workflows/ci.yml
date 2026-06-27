@@ -30,6 +30,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+    env:
+      SECRET_KEY: ci-secret-key
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
     steps:
       - uses: actions/checkout@v4
 
