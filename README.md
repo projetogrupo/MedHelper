@@ -6,3 +6,7 @@ This section will describe AI usage throughout development.
 
 ## AI Usage Overview
 This section will describe AI usage throughout development.
+
+## Code Metrics
+Backend complexity and maintainability metrics (radon + pylint) are tracked
+per milestone in [docs/metrics.md](docs/metrics.md).
