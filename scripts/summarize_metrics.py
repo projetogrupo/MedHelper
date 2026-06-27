@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize radon/pylint JSON output for one checkpoint into a Markdown report.
-
-Mirrors the "summarize" step from https://gitlab.com/cortext-usp/metrics,
-but kept local/dependency-free (no Docker, no plots) since this project's
-CI just needs the numbers reported per milestone, not cross-checkpoint plots.
-"""
+"""Summarize radon/pylint JSON output for one checkpoint into a Markdown report."""
 import json
 import statistics
 import sys

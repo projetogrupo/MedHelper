@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Collects backend code metrics for a named checkpoint (e.g. a milestone tag,
-# "main", or "before"/"after" a refactor), following the checkpoint convention
-# from https://gitlab.com/cortext-usp/metrics: one JSON file per radon metric
-# (cc, mi, raw, hal) plus pylint JSON+text, all under metrics/<checkpoint>/.
+# "main", or "before"/"after" a refactor). Writes one JSON file per radon
+# metric (cc, mi, raw, hal) plus pylint JSON+text, all under
+# metrics/<checkpoint>/.
 #
 # Usage: ./scripts/metrics.sh [checkpoint-name]
 # Defaults to the current git ref (branch or tag) as the checkpoint name.

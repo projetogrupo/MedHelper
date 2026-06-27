@@ -42,8 +42,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Checkpoint name follows the cortext-usp/metrics convention: one
-      # named snapshot per ref being evaluated (here, the commit SHA).
       - name: Collect radon/pylint metrics
         id: metrics
         run: |
