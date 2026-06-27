@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-secret-key
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest
+
+  metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Checkpoint name follows the cortext-usp/metrics convention: one
+      # named snapshot per ref being evaluated (here, the commit SHA).
+      - name: Collect radon/pylint metrics
+        id: metrics
+        run: |
+          CHECKPOINT="${GITHUB_SHA::8}"
+          ./scripts/metrics.sh "$CHECKPOINT"
+          echo "checkpoint=$CHECKPOINT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload metrics snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-${{ steps.metrics.outputs.checkpoint }}
+          path: metrics/${{ steps.metrics.outputs.checkpoint }}/
+
+      # Mirrors the MR-comment step in cortext-usp/ci's python-metrics.yml,
+      # adapted to GitHub's PR-comment API instead of GitLab's.
+      - name: Comment metrics on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const checkpoint = "${{ steps.metrics.outputs.checkpoint }}";
+            const summary = fs.readFileSync(`metrics/${checkpoint}/summary.md`, 'utf8');
+            const marker = '<!-- medhelper-metrics-report -->';
+            const body = `${marker}\n${summary}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
