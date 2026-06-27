@@ -1,36 +1,9 @@
 # Code Metrics
 
-This document records the evolution of the backend's code-quality metrics
-across project milestones, as required by the course.
-
-Metrics cover the backend Python code (`src/core`, `src/medhelper`),
-excluding migrations and tests. They are collected with
-[radon](https://radon.readthedocs.io/) (complexity, maintainability, raw
-size) and [pylint](https://pylint.readthedocs.io/) (static-analysis score).
-
-## How to collect
-
-```bash
-# Run from the project root, with the virtualenv active.
-./scripts/metrics.sh milestone-<N>
-```
-
-This writes a snapshot to `metrics/milestone-<N>/` (one JSON file per radon
-metric — `cc`, `mi`, `raw`, `hal` — plus `pylint.json`/`pylint.txt` and a
-human-readable `summary.md`). The same collection runs automatically in CI
-on every push/PR, where the snapshot is uploaded as a build artifact.
-
-After collecting a milestone, copy its numbers into the progression table
-below and commit the `metrics/milestone-<N>/` folder as the permanent record.
-
-## Metrics glossary
-
-| Metric | Tool | Meaning |
-|---|---|---|
-| Cyclomatic complexity (CC) | radon `cc` | Number of independent paths through a block; lower is simpler. Rank A (1–5) is ideal. |
-| Maintainability index (MI) | radon `mi` | 0–100 score combining complexity, volume, and size; higher is more maintainable. Rank A is ≥ 20. |
-| LOC / SLOC | radon `raw` | Total lines / source lines of code. |
-| Pylint score | pylint | 0–10 static-analysis rating. |
+Evolution of the backend's code-quality metrics across project milestones,
+collected with [radon](https://radon.readthedocs.io/) (complexity,
+maintainability, size) and [pylint](https://pylint.readthedocs.io/) over
+`src/core` and `src/medhelper` (excluding migrations and tests).
 
 ## Progression
 
@@ -45,20 +18,26 @@ below and commit the `metrics/milestone-<N>/` folder as the permanent record.
 | Pylint findings | 55 |
 | Pylint score | 8.06/10 |
 
-_Add a new column for each milestone as it is completed._
+_A new column is added for each completed milestone._
+
+## Metrics glossary
+
+| Metric | Meaning |
+|---|---|
+| Cyclomatic complexity (CC) | Independent paths through a block; lower is simpler. Rank A (1–5) is ideal. |
+| Maintainability index (MI) | 0–100 score; higher is more maintainable. Rank A is ≥ 20. |
+| LOC / SLOC | Total lines / source lines of code. |
+| Pylint score | 0–10 static-analysis rating. |
 
 ## Milestone notes
 
-### Milestone 0 — Metrics tooling baseline
+### Milestone 0 — Baseline
 
-First snapshot, taken when the radon/pylint collection and CI pipeline were
-set up (Setup & Infrastructure milestone). Captures the state of the backend
-after the initial models, HTMX CRUD endpoints, and Docker/Postgres setup.
+State of the backend when metrics tooling was set up (initial models, HTMX
+CRUD endpoints, Docker/Postgres).
 
-- Complexity is very low: every block ranks **A**, average **1.35**, max **2**.
-- Maintainability is strong: all files rank **A**; the lowest is `views.py`
-  at **51.35** (still well within the maintainable range), as it holds most
-  of the request-handling logic.
-- Pylint sits at **8.06/10**. The bulk of the findings are indentation
-  warnings in `models.py` (1–2 space indents instead of 4) plus a few
-  over-length lines — formatting issues rather than logic problems.
+- Complexity very low: every block ranks **A**, average **1.35**, max **2**.
+- Maintainability strong: all files rank **A**; lowest is `views.py` at
+  **51.35**, as it holds most of the request-handling logic.
+- Pylint **8.06/10** — mostly `models.py` indentation and a few over-length
+  lines (formatting, not logic).
