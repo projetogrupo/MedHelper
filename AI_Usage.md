@@ -19,6 +19,8 @@ So far, AI assistance has primarily been used for:
 * setting up pytest-django and drafting test coverage for these endpoints;
 * drafting the Dockerfile and docker-compose configuration with a PostgreSQL
   service, and the environment-variable-driven settings;
+* setting up the radon/pylint code-metrics tooling, the CI pipeline, and the
+  per-milestone metrics documentation;
 * general development support and debugging assistance.
 
 ## Human Oversight
