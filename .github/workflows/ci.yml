@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-secret-key
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest
+
+  metrics:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-secret-key
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Collect radon/pylint metrics
+        id: metrics
+        run: |
+          CHECKPOINT="${GITHUB_SHA::8}"
+          ./scripts/metrics.sh "$CHECKPOINT"
+          echo "checkpoint=$CHECKPOINT" >> "$GITHUB_OUTPUT"
+
+      - name: Show metrics summary
+        run: cat "metrics/${{ steps.metrics.outputs.checkpoint }}/summary.md"
+
+      - name: Upload metrics snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-${{ steps.metrics.outputs.checkpoint }}
+          path: metrics/${{ steps.metrics.outputs.checkpoint }}/
