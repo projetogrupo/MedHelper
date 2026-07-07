@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}MedHelper{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'core/style.css' %}" />
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="{% url 'index' %}" class="logo">
+      <span class="logo-icon">✚</span>
+      <span>MedHelper</span>
+    </a>
+    <nav class="main-nav">
+      <a href="{% url 'index' %}"
+         {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
+        Agendar
+      </a>
+      <a href="{% url 'appointment-list' %}"
+         {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
+        Consultas
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="message message--{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <p>MedHelper &mdash; MAC0350</p>
+</footer>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

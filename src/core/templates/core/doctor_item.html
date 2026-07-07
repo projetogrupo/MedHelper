@@ -1,1 +1,4 @@
-<li id="doctor-{{ doctor.id }}">Dr. {{ doctor.first_name }} {{ doctor.last_name }} - {{ doctor.specialty }}</li>
+{# Partial devolvido pelo HTMX após criação bem-sucedida de médico (status 201). #}
+<div class="message message--success">
+  Médico <strong>{{ doctor }}</strong> cadastrado com sucesso.
+</div>

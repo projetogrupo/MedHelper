@@ -8,7 +8,11 @@ from .models import Appointment
 
 
 def index(request):
-    return HttpResponse("MedHelper is running.")
+    return render(request, "core/index.html", {
+        "appointment_form": AppointmentForm(),
+        "patient_form":     PatientForm(),
+        "doctor_form":      DoctorForm(),
+    })
 
 
 @require_http_methods(["POST"])

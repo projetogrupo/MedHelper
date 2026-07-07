@@ -1,6 +1,71 @@
-<form hx-put="{% url 'appointment-update' appointment.id %}"
-      hx-target="#appointment-{{ appointment.id }}" hx-swap="outerHTML">
-  <p class="form-error">{{ error }}</p>
-  {{ form.as_p }}
-  <button type="submit">Save changes</button>
-</form>
+{# Partial: linha de edição inline, substitui o <tr> da consulta.
+   Retornado pelo HTMX na view update_appointment (GET) e em caso de
+   erro de validação no PUT. #}
+<tr id="appointment-{{ appointment.id }}">
+  <td colspan="6">
+    <div class="card" style="margin:.5rem 0">
+      <p class="form-section-title">Editar consulta #{{ appointment.id }}</p>
+
+      {% if error %}
+        <p class="message message--error">{{ error }}</p>
+      {% endif %}
+
+      <form
+        hx-put="{% url 'appointment-update' appointment.id %}"
+        hx-target="#appointment-{{ appointment.id }}"
+        hx-swap="outerHTML"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+      >
+        {% csrf_token %}
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Paciente</label>
+            {{ form.patient }}
+            {{ form.patient.errors }}
+          </div>
+
+          <div class="form-group">
+            <label>Médico</label>
+            {{ form.doctor }}
+            {{ form.doctor.errors }}
+          </div>
+
+          <div class="form-group">
+            <label>Data e hora</label>
+            {{ form.appointment_date }}
+            {{ form.appointment_date.errors }}
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            {{ form.status }}
+            {{ form.status.errors }}
+          </div>
+
+          <div class="form-group" style="grid-column: 1 / -1">
+            <label>Motivo</label>
+            {{ form.reason }}
+            {{ form.reason.errors }}
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          {# Cancelar edição: recarrega o item original sem salvar #}
+          <button
+            type="button"
+            class="btn btn-ghost"
+            hx-get="{% url 'appointment-list' %}"
+            hx-target="#appointment-{{ appointment.id }}"
+            hx-select="#appointment-{{ appointment.id }}"
+            hx-swap="outerHTML"
+          >
+            Descartar
+          </button>
+        </div>
+      </form>
+    </div>
+  </td>
+</tr>
