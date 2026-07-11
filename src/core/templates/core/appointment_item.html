@@ -3,7 +3,7 @@
    nas views create_appointment, update_appointment, cancel_appointment. #}
 <tr id="appointment-{{ appointment.id }}">
 
-  <td>{{ appointment.patient|default:"—" }}</td>
+  <td>{{ appointment.patient|default:"(no patient)" }}</td>
 
   <td>{{ appointment.doctor|default:"—" }}</td>
 

@@ -49,7 +49,7 @@ def test_list_appointments_filter_match(client, appointment):
 def test_list_appointments_filter_no_match(client, appointment):
     response = client.get(reverse("appointment-list"), {"q": "Zzz"})
     assert response.status_code == 200
-    assert b"No appointments found." in response.content
+    assert "Nenhuma consulta encontrada.".encode() in response.content
 
 
 @pytest.mark.django_db
