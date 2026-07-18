@@ -27,12 +27,24 @@ def test_appointment_list_requires_login(anon_client):
 def test_login_page_renders(anon_client):
     response = anon_client.get(reverse("login"))
     assert response.status_code == 200
-    assert "Entrar" in response.content.decode()
+    html = response.content.decode()
+    assert "Entrar" in html
+    assert "E-mail" in html
 
 
 @pytest.mark.django_db
-def test_login_redirects_to_index(anon_client):
-    User.objects.create_user("ana", password="segredo123")
+def test_login_with_email(anon_client):
+    User.objects.create_user("ana", "ana@example.com", "segredo123")
+    response = anon_client.post(
+        reverse("login"), {"username": "ana@example.com", "password": "segredo123"}
+    )
+    assert response.status_code == 302
+    assert response.url == reverse("index")
+
+
+@pytest.mark.django_db
+def test_login_with_legacy_username_still_works(anon_client):
+    User.objects.create_user("ana", "ana@example.com", "segredo123")
     response = anon_client.post(
         reverse("login"), {"username": "ana", "password": "segredo123"}
     )

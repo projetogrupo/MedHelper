@@ -5,7 +5,32 @@ from django.contrib.auth.models import User
 from .models import Appointment, Doctor, Patient
 
 
-class PatientSignupForm(UserCreationForm):
+class EmailSignupForm(UserCreationForm):
+    email = forms.EmailField(label="E-mail")
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ["email"]
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        taken = (
+            User.objects.filter(username__iexact=email).exists()
+            or User.objects.filter(email__iexact=email).exists()
+        )
+        if taken:
+            raise forms.ValidationError("Já existe uma conta com este e-mail.")
+        return email
+
+    def save_user(self):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data["email"]
+        user.email = self.cleaned_data["email"]
+        user.save()
+        return user
+
+
+class PatientSignupForm(EmailSignupForm):
     first_name = forms.CharField(max_length=100, label="Nome")
     last_name = forms.CharField(max_length=100, label="Sobrenome")
     birth_date = forms.DateField(
@@ -13,47 +38,41 @@ class PatientSignupForm(UserCreationForm):
         label="Data de nascimento",
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
-    email = forms.EmailField(required=False, label="E-mail")
     phone = forms.CharField(max_length=20, required=False, label="Telefone")
 
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ["username"]
+    field_order = ["email", "password1", "password2", "first_name", "last_name", "birth_date", "phone"]
 
     def save(self, commit=True):
-        user = super().save(commit)
+        user = self.save_user()
         Patient.objects.create(
             user=user,
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
             birth_date=self.cleaned_data.get("birth_date"),
-            email=self.cleaned_data.get("email") or "",
+            email=self.cleaned_data["email"],
             phone=self.cleaned_data.get("phone") or "",
         )
         return user
 
 
-class DoctorSignupForm(UserCreationForm):
+class DoctorSignupForm(EmailSignupForm):
     first_name = forms.CharField(max_length=100, label="Nome")
     last_name = forms.CharField(max_length=100, label="Sobrenome")
     specialty = forms.CharField(max_length=120, label="Especialidade")
     crm_number = forms.CharField(max_length=50, required=False, label="CRM")
-    email = forms.EmailField(required=False, label="E-mail")
     phone = forms.CharField(max_length=20, required=False, label="Telefone")
 
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ["username"]
+    field_order = ["email", "password1", "password2", "first_name", "last_name", "specialty", "crm_number", "phone"]
 
     def save(self, commit=True):
-        user = super().save(commit)
+        user = self.save_user()
         Doctor.objects.create(
             user=user,
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
             specialty=self.cleaned_data["specialty"],
             crm_number=self.cleaned_data.get("crm_number") or None,
-            email=self.cleaned_data.get("email") or None,
+            email=self.cleaned_data["email"],
             phone=self.cleaned_data.get("phone") or "",
         )
         return user
