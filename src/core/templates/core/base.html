@@ -18,14 +18,20 @@
       <span>MedHelper</span>
     </a>
     <nav class="main-nav">
-      <a href="{% url 'index' %}"
-         {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
-        Agendar
-      </a>
-      <a href="{% url 'appointment-list' %}"
-         {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
-        Consultas
-      </a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'index' %}"
+           {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
+          Agendar
+        </a>
+        <a href="{% url 'appointment-list' %}"
+           {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
+          Consultas
+        </a>
+        <form method="post" action="{% url 'logout' %}" style="display: inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost" style="padding: .25rem .75rem">Sair</button>
+        </form>
+      {% endif %}
     </nav>
   </div>
 </header>

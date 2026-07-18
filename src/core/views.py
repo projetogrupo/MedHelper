@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
@@ -7,6 +8,7 @@ from .forms import AppointmentForm, DoctorForm, PatientForm
 from .models import Appointment
 
 
+@login_required
 def index(request):
     return render(request, "core/index.html", {
         "appointment_form": AppointmentForm(),
@@ -15,6 +17,7 @@ def index(request):
     })
 
 
+@login_required
 @require_http_methods(["POST"])
 def create_patient(request):
     form = PatientForm(request.POST)
@@ -24,6 +27,7 @@ def create_patient(request):
     return render(request, "core/patient_form.html", {"form": form}, status=422)
 
 
+@login_required
 @require_http_methods(["POST"])
 def create_doctor(request):
     form = DoctorForm(request.POST)
@@ -33,6 +37,7 @@ def create_doctor(request):
     return render(request, "core/doctor_form.html", {"form": form}, status=422)
 
 
+@login_required
 @require_http_methods(["GET"])
 def list_appointments(request):
     query = request.GET.get("q", "").strip()
@@ -45,6 +50,7 @@ def list_appointments(request):
     return render(request, "core/appointment_list.html", {"appointments": appointments})
 
 
+@login_required
 @require_http_methods(["POST"])
 def create_appointment(request):
     form = AppointmentForm(request.POST)
@@ -54,6 +60,7 @@ def create_appointment(request):
     return render(request, "core/appointment_form.html", {"form": form}, status=422)
 
 
+@login_required
 @require_http_methods(["PUT"])
 def update_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
@@ -70,6 +77,7 @@ def update_appointment(request, appointment_id):
     return render(request, "core/appointment_update_form.html", context, status=422)
 
 
+@login_required
 @require_http_methods(["DELETE"])
 def delete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
@@ -77,6 +85,7 @@ def delete_appointment(request, appointment_id):
     return HttpResponse(status=200)
 
 
+@login_required
 @require_http_methods(["POST"])
 def cancel_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)

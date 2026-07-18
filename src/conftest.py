@@ -1,7 +1,17 @@
 import pytest
+from django.contrib.auth.models import User
+from django.test import Client
 from django.utils import timezone
 
 from core.models import Appointment, Doctor, Patient
+
+
+@pytest.fixture
+def client(db):
+    user = User.objects.create_user("tester", password="x")
+    logged_client = Client()
+    logged_client.force_login(user)
+    return logged_client
 
 
 @pytest.fixture
