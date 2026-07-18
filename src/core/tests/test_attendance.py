@@ -35,6 +35,7 @@ def test_doctor_starts_todays_appointment(doctor_client, today_appointment):
     )
     today_appointment.refresh_from_db()
     assert response.status_code == 302
+    assert response.url == reverse("attendance", args=[today_appointment.id])
     assert today_appointment.status == "in_progress"
 
 
@@ -85,3 +86,88 @@ def test_agenda_shows_in_progress_badge(doctor_client, today_appointment):
     today_appointment.save()
     html = doctor_client.get(reverse("appointment-list")).content.decode()
     assert "Em andamento" in html
+    assert "Abrir" in html
+
+
+@pytest.fixture
+def open_appointment(today_appointment):
+    today_appointment.status = Appointment.STATUS_IN_PROGRESS
+    today_appointment.save()
+    return today_appointment
+
+
+@pytest.mark.django_db
+def test_attendance_screen_renders(doctor_client, open_appointment):
+    html = doctor_client.get(
+        reverse("attendance", args=[open_appointment.id])
+    ).content.decode()
+    assert "Ana" in html
+    assert "Anotações" in html
+    assert "Concluir" in html
+
+
+@pytest.mark.django_db
+def test_attendance_blocked_for_scheduled(doctor_client, today_appointment):
+    response = doctor_client.get(reverse("attendance", args=[today_appointment.id]))
+    assert response.status_code == 302
+    assert response.url == reverse("appointment-list")
+
+
+@pytest.mark.django_db
+def test_attendance_forbidden_for_patient(patient_client, open_appointment):
+    response = patient_client.get(reverse("attendance", args=[open_appointment.id]))
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_notes_are_saved(doctor_client, open_appointment):
+    response = doctor_client.post(
+        reverse("attendance-notes", args=[open_appointment.id]),
+        {"notes": "Paciente estável."},
+    )
+    open_appointment.refresh_from_db()
+    assert response.status_code == 302
+    assert open_appointment.notes == "Paciente estável."
+
+
+@pytest.mark.django_db
+def test_document_upload_and_delete(doctor_client, open_appointment, settings, tmp_path):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    settings.MEDIA_ROOT = tmp_path
+    doctor_client.post(
+        reverse("attendance-doc-add", args=[open_appointment.id]),
+        {"file": SimpleUploadedFile("exame.txt", b"resultado")},
+    )
+    document = open_appointment.documents.get()
+    html = doctor_client.get(
+        reverse("attendance", args=[open_appointment.id])
+    ).content.decode()
+    assert "exame" in html
+    doctor_client.post(reverse("attendance-doc-delete", args=[document.id]))
+    assert not open_appointment.documents.exists()
+
+
+@pytest.mark.django_db
+def test_attendance_complete(doctor_client, open_appointment):
+    response = doctor_client.post(
+        reverse("attendance-complete", args=[open_appointment.id])
+    )
+    open_appointment.refresh_from_db()
+    assert response.status_code == 302
+    assert open_appointment.status == "completed"
+
+
+@pytest.mark.django_db
+def test_attendance_shows_patient_history(doctor_client, open_appointment, patient, doctor):
+    Appointment.objects.create(
+        patient=patient,
+        doctor=doctor,
+        appointment_date=timezone.now() - datetime.timedelta(days=30),
+        status=Appointment.STATUS_COMPLETED,
+        notes="Histórico antigo",
+    )
+    html = doctor_client.get(
+        reverse("attendance", args=[open_appointment.id])
+    ).content.decode()
+    assert "Histórico antigo" in html

@@ -28,4 +28,9 @@ urlpatterns = [
     path("appointments/<int:appointment_id>/cancel/", views.cancel_appointment, name="appointment-cancel"),
     path("appointments/<int:appointment_id>/complete/", views.complete_appointment, name="appointment-complete"),
     path("appointments/<int:appointment_id>/start/", views.start_appointment, name="appointment-start"),
+    path("consultas/<int:appointment_id>/atendimento/", views.attendance, name="attendance"),
+    path("consultas/<int:appointment_id>/atendimento/notas/", views.attendance_notes, name="attendance-notes"),
+    path("consultas/<int:appointment_id>/atendimento/documentos/", views.attendance_doc_add, name="attendance-doc-add"),
+    path("consultas/documentos/<int:document_id>/excluir/", views.attendance_doc_delete, name="attendance-doc-delete"),
+    path("consultas/<int:appointment_id>/atendimento/concluir/", views.attendance_complete, name="attendance-complete"),
 ]

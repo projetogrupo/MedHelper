@@ -179,6 +179,7 @@ class Appointment(models.Model):
 
 	appointment_date = models.DateTimeField()
 	reason = models.TextField(blank=True)
+	notes = models.TextField(blank=True)
 
 	status = models.CharField(
 		max_length=20,
@@ -226,3 +227,19 @@ class Appointment(models.Model):
 			self.status == self.STATUS_SCHEDULED
 			and timezone.localtime(self.appointment_date).date() <= timezone.localdate()
 		)
+
+
+class AppointmentDocument(models.Model):
+	appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name='documents')
+	file = models.FileField(upload_to='appointment_documents/')
+	uploaded_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['uploaded_at']
+
+	def __str__(self):
+		return self.filename
+
+	@property
+	def filename(self):
+		return self.file.name.rsplit('/', 1)[-1]

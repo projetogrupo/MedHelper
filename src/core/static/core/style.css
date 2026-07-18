@@ -510,3 +510,12 @@ tbody tr:last-child td { border-bottom: none; }
   background: var(--off-white);
   margin-bottom: 1rem;
 }
+
+.history-item {
+  border-bottom: 1px solid var(--sky-light);
+  padding: .6rem 0;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}

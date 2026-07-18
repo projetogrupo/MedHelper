@@ -18,7 +18,15 @@ from .forms import (
     PatientProfileForm,
     PatientSignupForm,
 )
-from .models import Appointment, DateOverride, DateSlot, Doctor, Patient, WeeklySlot
+from .models import (
+    Appointment,
+    AppointmentDocument,
+    DateOverride,
+    DateSlot,
+    Doctor,
+    Patient,
+    WeeklySlot,
+)
 
 
 def role_of(user):
@@ -493,6 +501,78 @@ def start_appointment(request, appointment_id):
     if not appointment.is_startable:
         return HttpResponse(status=422)
     appointment.status = Appointment.STATUS_IN_PROGRESS
+    appointment.save()
+    return redirect("attendance", appointment_id=appointment.id)
+
+
+def own_attendance(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None or appointment.doctor != doctor:
+        return None
+    return appointment
+
+
+@login_required
+@require_http_methods(["GET"])
+def attendance(request, appointment_id):
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    if appointment.status not in (Appointment.STATUS_IN_PROGRESS, Appointment.STATUS_COMPLETED):
+        return redirect("appointment-list")
+    history = appointment.patient.appointments.exclude(
+        id=appointment.id
+    ).order_by("-appointment_date")
+    return render(request, "core/attendance.html", {
+        "appointment": appointment,
+        "history": history,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_notes(request, appointment_id):
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    appointment.notes = request.POST.get("notes", "")
+    appointment.save()
+    return redirect("attendance", appointment_id=appointment.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_doc_add(request, appointment_id):
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    uploaded = request.FILES.get("file")
+    if uploaded is not None:
+        AppointmentDocument.objects.create(appointment=appointment, file=uploaded)
+    return redirect("attendance", appointment_id=appointment.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_doc_delete(request, document_id):
+    document = get_object_or_404(AppointmentDocument, id=document_id)
+    appointment = own_attendance(request, document.appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    document.delete()
+    return redirect("attendance", appointment_id=appointment.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_complete(request, appointment_id):
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    if appointment.status != Appointment.STATUS_IN_PROGRESS:
+        return HttpResponse(status=422)
+    appointment.status = Appointment.STATUS_COMPLETED
     appointment.save()
     return redirect("appointment-list")
 
