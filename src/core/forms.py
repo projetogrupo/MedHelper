@@ -59,6 +59,39 @@ class DoctorSignupForm(UserCreationForm):
         return user
 
 
+class PatientProfileForm(forms.ModelForm):
+    class Meta:
+        model = Patient
+        fields = ["first_name", "last_name", "birth_date", "email", "phone", "address", "photo"]
+        labels = {
+            "first_name": "Nome",
+            "last_name": "Sobrenome",
+            "birth_date": "Data de nascimento",
+            "email": "E-mail",
+            "phone": "Telefone",
+            "address": "Endereço",
+            "photo": "Foto",
+        }
+        widgets = {
+            "birth_date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+        }
+
+
+class DoctorProfileForm(forms.ModelForm):
+    class Meta:
+        model = Doctor
+        fields = ["first_name", "last_name", "specialty", "crm_number", "email", "phone", "photo"]
+        labels = {
+            "first_name": "Nome",
+            "last_name": "Sobrenome",
+            "specialty": "Especialidade",
+            "crm_number": "CRM",
+            "email": "E-mail",
+            "phone": "Telefone",
+            "photo": "Foto",
+        }
+
+
 class BookingForm(forms.Form):
     patient = forms.ModelChoiceField(queryset=Patient.objects.all(), required=False, label="Paciente")
     doctor = forms.ModelChoiceField(queryset=Doctor.objects.all(), label="Médico")

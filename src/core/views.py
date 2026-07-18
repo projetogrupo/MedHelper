@@ -10,7 +10,14 @@ from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import AppointmentForm, BookingForm, DoctorSignupForm, PatientSignupForm
+from .forms import (
+    AppointmentForm,
+    BookingForm,
+    DoctorProfileForm,
+    DoctorSignupForm,
+    PatientProfileForm,
+    PatientSignupForm,
+)
 from .models import Appointment, DateOverride, DateSlot, Doctor, Patient, WeeklySlot
 
 
@@ -227,6 +234,24 @@ def calendar_day_remove(request):
     return render(request, "core/day_panel.html", day_panel_context(doctor, date))
 
 
+@login_required
+@require_http_methods(["GET", "POST"])
+def profile(request):
+    doctor = getattr(request.user, "doctor", None)
+    patient = getattr(request.user, "patient", None)
+    if doctor is not None:
+        form_class, instance = DoctorProfileForm, doctor
+    elif patient is not None:
+        form_class, instance = PatientProfileForm, patient
+    else:
+        return redirect("index")
+    form = form_class(request.POST or None, request.FILES or None, instance=instance)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("profile")
+    return render(request, "core/profile.html", {"form": form, "person": instance})
+
+
 MONTHS_PT = [
     "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
@@ -286,6 +311,7 @@ def booking_panel_context(request):
             row.append({"date": day, "in_month": day.month == month, "available": available})
         weeks.append(row)
     context = {
+        "preview_doctor": doctors[0] if doctor_id and doctors else None,
         "specialties": Doctor.objects.order_by("specialty").values_list("specialty", flat=True).distinct(),
         "all_doctors": Doctor.objects.filter(specialty=specialty) if specialty else Doctor.objects.all(),
         "selected_specialty": specialty,

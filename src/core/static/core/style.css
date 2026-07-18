@@ -479,3 +479,33 @@ tbody tr:last-child td { border-bottom: none; }
 #day-panel {
   user-select: none;
 }
+
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatar--initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--blue-deep);
+  color: var(--text-on-dark);
+  font-weight: 600;
+}
+
+.avatar--sm { width: 1.8rem; height: 1.8rem; font-size: .7rem; }
+.avatar--md { width: 3.2rem; height: 3.2rem; font-size: 1rem; }
+.avatar--lg { width: 4.5rem; height: 4.5rem; font-size: 1.4rem; }
+
+.doctor-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 1rem;
+  border: 1px solid var(--sky-light);
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+  margin-bottom: 1rem;
+}

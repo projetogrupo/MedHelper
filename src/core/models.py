@@ -13,6 +13,7 @@ class Patient(models.Model):
 	email = models.EmailField(max_length=254, blank=True)
 	phone = models.CharField(max_length=20, blank=True)
 	address = models.CharField(max_length=255, blank=True)
+	photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
 
 	class Meta:
 		ordering = ['last_name', 'first_name']
@@ -32,6 +33,7 @@ class Doctor(models.Model):
 	# CRM is an identifier for a doctor; make it unique when present
 	crm_number = models.CharField(max_length=50, blank=True, null=True, unique=True)
 	appointment_duration = models.PositiveIntegerField(default=30)
+	photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
 
 	class Meta:
 		ordering = ['last_name', 'first_name']
