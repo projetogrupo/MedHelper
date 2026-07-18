@@ -22,6 +22,7 @@
   <td>
     <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
 
+      {% if user.is_superuser %}
       <button
         class="btn btn-ghost"
         style="padding:.25rem .75rem; font-size:.8rem"
@@ -32,6 +33,7 @@
       >
         Editar
       </button>
+      {% endif %}
 
       {% if appointment.is_cancellable %}
         <button
@@ -47,6 +49,7 @@
         </button>
       {% endif %}
 
+      {% if user.is_superuser %}
       <button
         class="btn btn-danger"
         style="padding:.25rem .75rem; font-size:.8rem"
@@ -58,6 +61,7 @@
       >
         Excluir
       </button>
+      {% endif %}
 
     </div>
   </td>

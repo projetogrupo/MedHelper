@@ -8,7 +8,7 @@ from core.models import Appointment, Doctor, Patient
 
 @pytest.fixture
 def client(db):
-    user = User.objects.create_user("tester", password="x")
+    user = User.objects.create_superuser("tester", "tester@example.com", "x")
     logged_client = Client()
     logged_client.force_login(user)
     return logged_client

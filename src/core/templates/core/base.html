@@ -19,10 +19,12 @@
     </a>
     <nav class="main-nav">
       {% if user.is_authenticated %}
-        <a href="{% url 'index' %}"
-           {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
-          Agendar
-        </a>
+        {% if user.is_superuser or user.patient %}
+          <a href="{% url 'index' %}"
+             {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
+            Agendar
+          </a>
+        {% endif %}
         <a href="{% url 'appointment-list' %}"
            {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
           Consultas
