@@ -1,10 +1,11 @@
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import AppointmentForm
+from .forms import AppointmentForm, DoctorSignupForm, PatientSignupForm
 from .models import Appointment
 
 
@@ -16,6 +17,30 @@ def role_of(user):
     if getattr(user, "patient", None):
         return "patient"
     return None
+
+
+@require_http_methods(["GET"])
+def signup(request):
+    return render(request, "core/signup.html")
+
+
+def _signup(request, form_class, template):
+    form = form_class(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        login(request, user)
+        return redirect("index")
+    return render(request, template, {"form": form})
+
+
+@require_http_methods(["GET", "POST"])
+def signup_patient(request):
+    return _signup(request, PatientSignupForm, "core/signup_patient.html")
+
+
+@require_http_methods(["GET", "POST"])
+def signup_doctor(request):
+    return _signup(request, DoctorSignupForm, "core/signup_doctor.html")
 
 
 @login_required
