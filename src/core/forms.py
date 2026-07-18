@@ -1,33 +1,19 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 
-from .models import Appointment, Doctor, Patient
+from .models import Appointment, Doctor, Patient, User
 
 
 class EmailSignupForm(UserCreationForm):
-    email = forms.EmailField(label="E-mail")
-
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ["email"]
 
     def clean_email(self):
-        email = self.cleaned_data["email"].lower()
-        taken = (
-            User.objects.filter(username__iexact=email).exists()
-            or User.objects.filter(email__iexact=email).exists()
-        )
-        if taken:
-            raise forms.ValidationError("Já existe uma conta com este e-mail.")
-        return email
+        return self.cleaned_data["email"].lower()
 
     def save_user(self):
-        user = super().save(commit=False)
-        user.username = self.cleaned_data["email"]
-        user.email = self.cleaned_data["email"]
-        user.save()
-        return user
+        return super().save()
 
 
 class PatientSignupForm(EmailSignupForm):

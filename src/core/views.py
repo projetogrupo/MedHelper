@@ -40,7 +40,7 @@ def _signup(request, form_class, template):
     form = form_class(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
-        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        login(request, user)
         return redirect("index")
     return render(request, template, {"form": form})
 

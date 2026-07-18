@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 
-from .models import Appointment, Doctor, Patient
+from .models import Appointment, Doctor, Patient, User
 
 
 class DoctorInline(admin.StackedInline):
@@ -13,12 +12,21 @@ class PatientInline(admin.StackedInline):
     model = Patient
 
 
+@admin.register(User)
 class MedHelperUserAdmin(UserAdmin):
     inlines = (DoctorInline, PatientInline)
 
-
-admin.site.unregister(User)
-admin.site.register(User, MedHelperUserAdmin)
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Datas', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {'classes': ('wide',), 'fields': ('email', 'password1', 'password2')}),
+    )
+    list_display = ('email', 'is_staff')
+    search_fields = ('email',)
+    ordering = ('email',)
 
 
 @admin.register(Patient)

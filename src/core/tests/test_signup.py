@@ -1,5 +1,5 @@
 import pytest
-from django.contrib.auth.models import User
+from core.models import User
 from django.test import Client
 from django.urls import reverse
 
@@ -41,7 +41,6 @@ def test_patient_signup_creates_linked_profile(anon_client):
     )
     assert response.status_code == 302
     user = User.objects.get(email="ana@example.com")
-    assert user.username == "ana@example.com"
     assert user.patient.first_name == "Ana"
     assert user.patient.email == "ana@example.com"
 

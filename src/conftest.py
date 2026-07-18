@@ -1,14 +1,13 @@
 import pytest
-from django.contrib.auth.models import User
+from core.models import Appointment, Doctor, Patient, User
 from django.test import Client
 from django.utils import timezone
 
-from core.models import Appointment, Doctor, Patient
 
 
 @pytest.fixture
 def client(db):
-    user = User.objects.create_superuser("tester", "tester@example.com", "x")
+    user = User.objects.create_superuser("tester@example.com", "x")
     logged_client = Client()
     logged_client.force_login(user)
     return logged_client
@@ -16,7 +15,7 @@ def client(db):
 
 @pytest.fixture
 def admin_client(db):
-    user = User.objects.create_superuser("boss", "boss@example.com", "x")
+    user = User.objects.create_superuser("boss@example.com", "x")
     logged = Client()
     logged.force_login(user)
     return logged
@@ -24,7 +23,7 @@ def admin_client(db):
 
 @pytest.fixture
 def doctor_client(doctor):
-    user = User.objects.create_user("dra", password="x")
+    user = User.objects.create_user("dra@example.com", password="x")
     doctor.user = user
     doctor.save()
     logged = Client()
@@ -34,7 +33,7 @@ def doctor_client(doctor):
 
 @pytest.fixture
 def patient_client(patient):
-    user = User.objects.create_user("ana", password="x")
+    user = User.objects.create_user("ana@example.com", password="x")
     patient.user = user
     patient.save()
     logged = Client()

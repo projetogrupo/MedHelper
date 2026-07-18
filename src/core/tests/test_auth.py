@@ -1,5 +1,5 @@
 import pytest
-from django.contrib.auth.models import User
+from core.models import User
 from django.test import Client
 from django.urls import reverse
 
@@ -34,7 +34,7 @@ def test_login_page_renders(anon_client):
 
 @pytest.mark.django_db
 def test_login_with_email(anon_client):
-    User.objects.create_user("ana", "ana@example.com", "segredo123")
+    User.objects.create_user("ana@example.com", "segredo123")
     response = anon_client.post(
         reverse("login"), {"username": "ana@example.com", "password": "segredo123"}
     )
@@ -43,18 +43,8 @@ def test_login_with_email(anon_client):
 
 
 @pytest.mark.django_db
-def test_login_with_legacy_username_still_works(anon_client):
-    User.objects.create_user("ana", "ana@example.com", "segredo123")
-    response = anon_client.post(
-        reverse("login"), {"username": "ana", "password": "segredo123"}
-    )
-    assert response.status_code == 302
-    assert response.url == reverse("index")
-
-
-@pytest.mark.django_db
 def test_login_rejects_bad_credentials(anon_client):
-    User.objects.create_user("ana", password="segredo123")
+    User.objects.create_user("ana@example.com", password="segredo123")
     response = anon_client.post(
         reverse("login"), {"username": "ana", "password": "errada"}
     )
