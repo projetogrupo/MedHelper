@@ -15,12 +15,12 @@
         hx-target="#booking-result"
         hx-swap="innerHTML"
         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-        hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
+        hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) { this.reset(); htmx.trigger('#id_specialty', 'change'); }">
 
     {% csrf_token %}
-    <div class="form-grid">
 
-      {% if patients %}
+    {% if patients %}
+      <div class="form-grid">
         <div class="form-group">
           <label for="id_patient">Paciente</label>
           <select name="patient" id="id_patient" required>
@@ -30,43 +30,14 @@
             {% endfor %}
           </select>
         </div>
-      {% endif %}
-
-      <div class="form-group">
-        <label for="id_doctor">Médico</label>
-        <select name="doctor" id="id_doctor" required
-                hx-get="{% url 'booking-slots' %}"
-                hx-trigger="change"
-                hx-target="#slot-options"
-                hx-include="closest form">
-          <option value="">---------</option>
-          {% for d in doctors %}
-            <option value="{{ d.id }}">{{ d }} — {{ d.specialty }}</option>
-          {% endfor %}
-        </select>
       </div>
+    {% endif %}
 
-      <div class="form-group">
-        <label for="id_date">Data</label>
-        <input type="date" name="date" id="id_date" required min="{{ today|date:'Y-m-d' }}"
-               hx-get="{% url 'booking-slots' %}"
-               hx-trigger="change"
-               hx-target="#slot-options"
-               hx-include="closest form" />
-      </div>
+    {% include "core/booking_area.html" %}
 
-      <div class="form-group" style="grid-column: 1 / -1">
-        <label>Horários disponíveis</label>
-        <div id="slot-options">
-          <p style="color: var(--text-secondary)">Escolha um médico e uma data para ver os horários.</p>
-        </div>
-      </div>
-
-      <div class="form-group" style="grid-column: 1 / -1">
-        <label for="id_reason">Motivo</label>
-        <textarea name="reason" id="id_reason" rows="3"></textarea>
-      </div>
-
+    <div class="form-group" style="margin-top: 1rem">
+      <label for="id_reason">Motivo</label>
+      <textarea name="reason" id="id_reason" rows="3"></textarea>
     </div>
 
     <div class="form-actions">

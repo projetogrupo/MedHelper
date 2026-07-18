@@ -394,3 +394,56 @@ tbody tr:last-child td { border-bottom: none; }
   border-color: var(--teal);
   color: #fff;
 }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.month-grid {
+  border-collapse: collapse;
+}
+
+.month-grid th {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.month-grid td {
+  padding: 2px;
+  text-align: center;
+}
+
+.cal-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.cal-day--out {
+  opacity: 0.35;
+}
+
+.cal-day.day-avail {
+  background: var(--green-light);
+  border-color: var(--teal);
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cal-day.day-avail:hover {
+  background: var(--teal);
+  color: #fff;
+}

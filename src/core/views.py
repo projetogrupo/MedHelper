@@ -1,4 +1,5 @@
 import datetime
+from calendar import Calendar as MonthGrid
 
 from django.utils import timezone
 
@@ -213,29 +214,97 @@ def calendar_day_remove(request):
     return render(request, "core/day_panel.html", day_panel_context(doctor, date))
 
 
+MONTHS_PT = [
+    "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+]
+
+
+def booking_filters(request):
+    specialty = request.GET.get("specialty", "").strip()
+    doctor_id = request.GET.get("doctor", "").strip()
+    if doctor_id and specialty and not Doctor.objects.filter(id=doctor_id, specialty=specialty).exists():
+        doctor_id = ""
+    if doctor_id:
+        doctors = Doctor.objects.filter(id=doctor_id)
+    elif specialty:
+        doctors = Doctor.objects.filter(specialty=specialty)
+    else:
+        doctors = Doctor.objects.none()
+    return specialty, doctor_id, doctors
+
+
+def booking_panel_context(request):
+    today = datetime.date.today()
+    try:
+        year = int(request.GET.get("year", today.year))
+        month = int(request.GET.get("month", today.month))
+        datetime.date(year, month, 1)
+    except ValueError:
+        year, month = today.year, today.month
+    specialty, doctor_id, doctors = booking_filters(request)
+    doctors = list(doctors)
+    weeks = []
+    for week in MonthGrid().monthdatescalendar(year, month):
+        row = []
+        for day in week:
+            available = (
+                day.month == month
+                and day >= today
+                and any(d.available_slots(day) for d in doctors)
+            )
+            row.append({"date": day, "in_month": day.month == month, "available": available})
+        weeks.append(row)
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return {
+        "specialties": Doctor.objects.order_by("specialty").values_list("specialty", flat=True).distinct(),
+        "all_doctors": Doctor.objects.filter(specialty=specialty) if specialty else Doctor.objects.all(),
+        "selected_specialty": specialty,
+        "selected_doctor": doctor_id,
+        "has_filter": bool(specialty or doctor_id),
+        "weeks": weeks,
+        "month_label": f"{MONTHS_PT[month]} {year}",
+        "prev_year": prev_year, "prev_month": prev_month,
+        "next_year": next_year, "next_month": next_month,
+    }
+
+
 @login_required
 def index(request):
     if role_of(request.user) == "doctor":
         return redirect("appointment-list")
-    return render(request, "core/index.html", {
-        "doctors": Doctor.objects.all(),
-        "patients": Patient.objects.all() if request.user.is_superuser else None,
-        "today": datetime.date.today(),
-    })
+    context = booking_panel_context(request)
+    context["patients"] = Patient.objects.all() if request.user.is_superuser else None
+    return render(request, "core/index.html", context)
 
 
 @login_required
 @require_http_methods(["GET"])
-def booking_slots(request):
+def booking_panel(request):
+    if role_of(request.user) not in ("patient", "admin"):
+        return HttpResponse(status=403)
+    return render(request, "core/booking_area.html", booking_panel_context(request))
+
+
+@login_required
+@require_http_methods(["GET"])
+def booking_day(request):
     if role_of(request.user) not in ("patient", "admin"):
         return HttpResponse(status=403)
     date = parse_day(request.GET.get("date"))
-    doctor_id = request.GET.get("doctor")
-    if date is None or not doctor_id:
-        return render(request, "core/slot_options.html", {"times": None})
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    return render(request, "core/slot_options.html", {
-        "times": doctor.available_slots(date),
+    if date is None:
+        return HttpResponse(status=400)
+    _, doctor_id, doctors = booking_filters(request)
+    groups = []
+    for doctor in doctors:
+        times = doctor.available_slots(date)
+        if times:
+            groups.append({"doctor": doctor, "times": times})
+    return render(request, "core/day_options.html", {
+        "date": date,
+        "groups": groups,
+        "show_doctor_names": not doctor_id,
     })
 
 
@@ -276,7 +345,13 @@ def create_appointment(request):
     role = role_of(request.user)
     if role == "doctor":
         return HttpResponse(status=403)
-    form = BookingForm(request.POST)
+    data = request.POST.copy()
+    slot = data.get("slot", "")
+    if "|" in slot:
+        doctor_id, _, slot_time = slot.partition("|")
+        data["doctor"] = doctor_id
+        data["time"] = slot_time
+    form = BookingForm(data)
     if form.is_valid():
         patient = form.cleaned_data.get("patient")
         if role == "patient":
