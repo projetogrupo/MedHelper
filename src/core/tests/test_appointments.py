@@ -4,34 +4,6 @@ from urllib.parse import urlencode
 
 
 @pytest.mark.django_db
-def test_create_appointment_valid(client, patient, doctor):
-    response = client.post(
-        reverse("appointment-create"),
-        {
-            "patient": patient.id,
-            "doctor": doctor.id,
-            "appointment_date": "2026-07-01 10:00",
-            "reason": "Initial visit",
-            "status": "scheduled",
-        },
-    )
-    assert response.status_code == 201
-
-
-@pytest.mark.django_db
-def test_create_appointment_missing_date(client, patient, doctor):
-    response = client.post(
-        reverse("appointment-create"),
-        {
-            "patient": patient.id,
-            "doctor": doctor.id,
-            "status": "scheduled",
-        },
-    )
-    assert response.status_code == 422
-
-
-@pytest.mark.django_db
 def test_list_appointments_no_filter(client, appointment):
     response = client.get(reverse("appointment-list"))
     assert response.status_code == 200

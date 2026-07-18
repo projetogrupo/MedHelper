@@ -1,10 +1,12 @@
+import datetime
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import Appointment, Doctor, Patient
+from core.models import Appointment, Doctor, Patient, WeeklySlot
 
 
 @pytest.fixture
@@ -71,13 +73,14 @@ def test_doctor_index_redirects_to_list(doctor_client):
 
 @pytest.mark.django_db
 def test_patient_books_only_for_self(patient_client, patient, doctor, other_appointment):
+    WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(10, 0))
     response = patient_client.post(
         reverse("appointment-create"),
         {
             "patient": other_appointment.patient.id,
             "doctor": doctor.id,
-            "appointment_date": "2026-09-01T10:00",
-            "status": "scheduled",
+            "date": "2026-07-27",
+            "time": "10:00",
             "reason": "Consulta minha",
         },
     )

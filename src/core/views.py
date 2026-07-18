@@ -1,5 +1,7 @@
 import datetime
 
+from django.utils import timezone
+
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -7,8 +9,8 @@ from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import AppointmentForm, DoctorSignupForm, PatientSignupForm
-from .models import Appointment, DateOverride, DateSlot, WeeklySlot
+from .forms import AppointmentForm, BookingForm, DoctorSignupForm, PatientSignupForm
+from .models import Appointment, DateOverride, DateSlot, Doctor, Patient, WeeklySlot
 
 
 def role_of(user):
@@ -216,7 +218,24 @@ def index(request):
     if role_of(request.user) == "doctor":
         return redirect("appointment-list")
     return render(request, "core/index.html", {
-        "appointment_form": AppointmentForm(),
+        "doctors": Doctor.objects.all(),
+        "patients": Patient.objects.all() if request.user.is_superuser else None,
+        "today": datetime.date.today(),
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def booking_slots(request):
+    if role_of(request.user) not in ("patient", "admin"):
+        return HttpResponse(status=403)
+    date = parse_day(request.GET.get("date"))
+    doctor_id = request.GET.get("doctor")
+    if date is None or not doctor_id:
+        return render(request, "core/slot_options.html", {"times": None})
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    return render(request, "core/slot_options.html", {
+        "times": doctor.available_slots(date),
     })
 
 
@@ -241,15 +260,29 @@ def list_appointments(request):
 @login_required
 @require_http_methods(["POST"])
 def create_appointment(request):
-    data = request.POST
-    if role_of(request.user) == "patient":
-        data = request.POST.copy()
-        data["patient"] = request.user.patient.id
-    form = AppointmentForm(data)
+    role = role_of(request.user)
+    if role == "doctor":
+        return HttpResponse(status=403)
+    form = BookingForm(request.POST)
     if form.is_valid():
-        appointment = form.save()
-        return render(request, "core/appointment_item.html", {"appointment": appointment}, status=201)
-    return render(request, "core/appointment_form.html", {"form": form}, status=422)
+        patient = form.cleaned_data.get("patient")
+        if role == "patient":
+            patient = request.user.patient
+        if patient is None:
+            form.add_error("patient", "Escolha um paciente.")
+        else:
+            appointment = Appointment.objects.create(
+                patient=patient,
+                doctor=form.cleaned_data["doctor"],
+                appointment_date=timezone.make_aware(
+                    datetime.datetime.combine(
+                        form.cleaned_data["date"], form.cleaned_data["time"]
+                    )
+                ),
+                reason=form.cleaned_data.get("reason", ""),
+            )
+            return render(request, "core/booking_confirm.html", {"appointment": appointment}, status=201)
+    return render(request, "core/booking_errors.html", {"form": form}, status=422)
 
 
 @login_required

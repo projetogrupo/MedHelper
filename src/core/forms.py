@@ -59,6 +59,23 @@ class DoctorSignupForm(UserCreationForm):
         return user
 
 
+class BookingForm(forms.Form):
+    patient = forms.ModelChoiceField(queryset=Patient.objects.all(), required=False, label="Paciente")
+    doctor = forms.ModelChoiceField(queryset=Doctor.objects.all(), label="Médico")
+    date = forms.DateField(label="Data", widget=forms.DateInput(attrs={"type": "date"}))
+    time = forms.TimeField(label="Horário")
+    reason = forms.CharField(required=False, label="Motivo", widget=forms.Textarea(attrs={"rows": 3}))
+
+    def clean(self):
+        cleaned = super().clean()
+        doctor = cleaned.get("doctor")
+        date = cleaned.get("date")
+        time = cleaned.get("time")
+        if doctor and date and time and time not in doctor.available_slots(date):
+            raise forms.ValidationError("Este horário não está mais disponível.")
+        return cleaned
+
+
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment

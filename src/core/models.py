@@ -1,5 +1,8 @@
+import datetime
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Patient(models.Model):
@@ -43,6 +46,24 @@ class Doctor(models.Model):
 		return sorted(
 			self.weekly_slots.filter(weekday=date.weekday()).values_list('start_time', flat=True)
 		)
+
+	def available_slots(self, date):
+		taken = {
+			timezone.localtime(appointment.appointment_date).time()
+			for appointment in self.appointments.filter(
+				appointment_date__date=date
+			).exclude(status=Appointment.STATUS_CANCELLED)
+		}
+		now = timezone.localtime()
+		result = []
+		for time in self.slots_for_date(date):
+			if time in taken:
+				continue
+			when = timezone.make_aware(datetime.datetime.combine(date, time))
+			if when <= now:
+				continue
+			result.append(time)
+		return result
 
 
 class WeeklySlot(models.Model):

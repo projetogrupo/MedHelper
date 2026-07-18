@@ -1,0 +1,14 @@
+{% if times %}
+  <div class="day-grid">
+    {% for t in times %}
+      <label class="day-slot slot-choice">
+        <input type="radio" name="time" value="{{ t|time:'H:i' }}" required />
+        {{ t|time:"H:i" }}
+      </label>
+    {% endfor %}
+  </div>
+{% elif times is not None %}
+  <p class="message message--error">Nenhum horário disponível nesta data.</p>
+{% else %}
+  <p style="color: var(--text-secondary)">Escolha um médico e uma data para ver os horários.</p>
+{% endif %}

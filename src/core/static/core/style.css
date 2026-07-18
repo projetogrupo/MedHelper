@@ -377,3 +377,20 @@ tbody tr:last-child td { border-bottom: none; }
   cursor: default;
   opacity: 0.75;
 }
+
+.slot-choice {
+  display: inline-flex;
+  align-items: center;
+}
+
+.slot-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slot-choice:has(input:checked) {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}

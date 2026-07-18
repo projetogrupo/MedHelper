@@ -1,0 +1,7 @@
+<div class="message message--error">
+  {% for errors in form.errors.values %}
+    {% for error in errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  {% endfor %}
+</div>

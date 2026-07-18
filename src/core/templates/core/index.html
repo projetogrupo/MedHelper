@@ -9,10 +9,10 @@
 <div class="card">
   <p class="form-section-title">Agendar consulta</p>
 
-  <div id="appointment-result"></div>
+  <div id="booking-result"></div>
 
   <form hx-post="{% url 'appointment-create' %}"
-        hx-target="#appointment-result"
+        hx-target="#booking-result"
         hx-swap="innerHTML"
         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
         hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
@@ -20,34 +20,51 @@
     {% csrf_token %}
     <div class="form-grid">
 
-      <div class="form-group">
-        <label for="id_patient">Paciente</label>
-        {{ appointment_form.patient }}
-        {{ appointment_form.patient.errors }}
-      </div>
+      {% if patients %}
+        <div class="form-group">
+          <label for="id_patient">Paciente</label>
+          <select name="patient" id="id_patient" required>
+            <option value="">---------</option>
+            {% for p in patients %}
+              <option value="{{ p.id }}">{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      {% endif %}
 
       <div class="form-group">
         <label for="id_doctor">Médico</label>
-        {{ appointment_form.doctor }}
-        {{ appointment_form.doctor.errors }}
+        <select name="doctor" id="id_doctor" required
+                hx-get="{% url 'booking-slots' %}"
+                hx-trigger="change"
+                hx-target="#slot-options"
+                hx-include="closest form">
+          <option value="">---------</option>
+          {% for d in doctors %}
+            <option value="{{ d.id }}">{{ d }} — {{ d.specialty }}</option>
+          {% endfor %}
+        </select>
       </div>
 
       <div class="form-group">
-        <label for="id_appointment_date">Data e hora</label>
-        {{ appointment_form.appointment_date }}
-        {{ appointment_form.appointment_date.errors }}
+        <label for="id_date">Data</label>
+        <input type="date" name="date" id="id_date" required min="{{ today|date:'Y-m-d' }}"
+               hx-get="{% url 'booking-slots' %}"
+               hx-trigger="change"
+               hx-target="#slot-options"
+               hx-include="closest form" />
       </div>
 
-      <div class="form-group">
-        <label for="id_status">Status</label>
-        {{ appointment_form.status }}
-        {{ appointment_form.status.errors }}
+      <div class="form-group" style="grid-column: 1 / -1">
+        <label>Horários disponíveis</label>
+        <div id="slot-options">
+          <p style="color: var(--text-secondary)">Escolha um médico e uma data para ver os horários.</p>
+        </div>
       </div>
 
       <div class="form-group" style="grid-column: 1 / -1">
         <label for="id_reason">Motivo</label>
-        {{ appointment_form.reason }}
-        {{ appointment_form.reason.errors }}
+        <textarea name="reason" id="id_reason" rows="3"></textarea>
       </div>
 
     </div>
