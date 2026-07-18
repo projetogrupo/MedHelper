@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -6,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .forms import AppointmentForm, DoctorSignupForm, PatientSignupForm
-from .models import Appointment
+from .models import Appointment, WeeklySlot
 
 
 def role_of(user):
@@ -41,6 +43,89 @@ def signup_patient(request):
 @require_http_methods(["GET", "POST"])
 def signup_doctor(request):
     return _signup(request, DoctorSignupForm, "core/signup_doctor.html")
+
+
+WEEKDAYS = [(0, "Seg"), (1, "Ter"), (2, "Qua"), (3, "Qui"), (4, "Sex"), (5, "Sáb"), (6, "Dom")]
+GRID_START = datetime.time(7, 0)
+GRID_END = datetime.time(19, 0)
+
+
+def grid_times(duration):
+    times = []
+    current = datetime.datetime.combine(datetime.date.today(), GRID_START)
+    end = datetime.datetime.combine(datetime.date.today(), GRID_END)
+    while current < end:
+        times.append(current.time())
+        current += datetime.timedelta(minutes=duration)
+    return times
+
+
+def weekly_grid_rows(doctor):
+    painted = {
+        (slot.weekday, slot.start_time)
+        for slot in doctor.weekly_slots.all()
+    }
+    rows = []
+    for time in grid_times(doctor.appointment_duration):
+        cells = [
+            {"weekday": weekday, "time": time, "on": (weekday, time) in painted}
+            for weekday, _ in WEEKDAYS
+        ]
+        rows.append({"time": time, "cells": cells})
+    return rows
+
+
+@login_required
+@require_http_methods(["GET"])
+def calendar(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    return render(request, "core/calendar.html", {
+        "doctor": doctor,
+        "weekdays": WEEKDAYS,
+        "rows": weekly_grid_rows(doctor),
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def calendar_toggle(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    weekday = int(request.POST["weekday"])
+    time = datetime.datetime.strptime(request.POST["time"], "%H:%M").time()
+    slot, created = WeeklySlot.objects.get_or_create(
+        doctor=doctor, weekday=weekday, start_time=time
+    )
+    if not created:
+        slot.delete()
+    return render(request, "core/weekly_cell.html", {
+        "cell": {"weekday": weekday, "time": time, "on": created},
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def calendar_duration(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    try:
+        duration = int(request.POST.get("duration", ""))
+    except ValueError:
+        return redirect("calendar")
+    if duration < 5 or duration > 240:
+        return redirect("calendar")
+    doctor.appointment_duration = duration
+    doctor.save()
+    base = GRID_START.hour * 60 + GRID_START.minute
+    for slot in doctor.weekly_slots.all():
+        minutes = slot.start_time.hour * 60 + slot.start_time.minute
+        if (minutes - base) % duration != 0 or not (GRID_START <= slot.start_time < GRID_END):
+            slot.delete()
+    return redirect("calendar")
 
 
 @login_required

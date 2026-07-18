@@ -1,0 +1,51 @@
+{% extends "core/base.html" %}
+{% block title %}Horários — MedHelper{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Horários</h1>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem">
+  <p class="form-section-title">Duração da consulta</p>
+  <form method="post" action="{% url 'calendar-duration' %}"
+        onsubmit="return confirm('Alterar a duração remove horários que não se encaixam na nova grade. Continuar?')"
+        style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap">
+    {% csrf_token %}
+    <label for="id_duration">Minutos por consulta</label>
+    <input id="id_duration" name="duration" type="number" min="5" max="240" step="5"
+           value="{{ doctor.appointment_duration }}" style="width: 6rem" />
+    <button type="submit" class="btn btn-primary">Salvar</button>
+  </form>
+</div>
+
+<div class="card">
+  <p class="form-section-title">Semana padrão</p>
+  <p style="color: var(--text-secondary); margin-bottom: 1rem">
+    Clique nos horários em que você atende. Cada célula é um horário de
+    {{ doctor.appointment_duration }} minutos.
+  </p>
+  <div class="table-wrapper">
+    <table class="agenda-grid">
+      <thead>
+        <tr>
+          <th></th>
+          {% for weekday, label in weekdays %}
+            <th>{{ label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th>{{ row.time|time:"H:i" }}</th>
+            {% for cell in row.cells %}
+              <td>{% include "core/weekly_cell.html" %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

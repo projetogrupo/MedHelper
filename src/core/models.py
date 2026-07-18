@@ -37,6 +37,21 @@ class Doctor(models.Model):
 		return f"Dr. {self.first_name} {self.last_name}"
 
 
+class WeeklySlot(models.Model):
+	doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='weekly_slots')
+	weekday = models.PositiveSmallIntegerField()
+	start_time = models.TimeField()
+
+	class Meta:
+		ordering = ['weekday', 'start_time']
+		constraints = [
+			models.UniqueConstraint(fields=['doctor', 'weekday', 'start_time'], name='unique_weekly_slot'),
+		]
+
+	def __str__(self):
+		return f"{self.doctor} {self.weekday} {self.start_time}"
+
+
 class Appointment(models.Model):
 	STATUS_SCHEDULED = 'scheduled'
 	STATUS_COMPLETED = 'completed'

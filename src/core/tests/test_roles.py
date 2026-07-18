@@ -8,34 +8,6 @@ from core.models import Appointment, Doctor, Patient
 
 
 @pytest.fixture
-def admin_client(db):
-    user = User.objects.create_superuser("boss", "boss@example.com", "x")
-    logged = Client()
-    logged.force_login(user)
-    return logged
-
-
-@pytest.fixture
-def doctor_client(doctor):
-    user = User.objects.create_user("dra", password="x")
-    doctor.user = user
-    doctor.save()
-    logged = Client()
-    logged.force_login(user)
-    return logged
-
-
-@pytest.fixture
-def patient_client(patient):
-    user = User.objects.create_user("ana", password="x")
-    patient.user = user
-    patient.save()
-    logged = Client()
-    logged.force_login(user)
-    return logged
-
-
-@pytest.fixture
 def other_appointment(db):
     other_patient = Patient.objects.create(first_name="Zeca", last_name="Moura")
     other_doctor = Doctor.objects.create(

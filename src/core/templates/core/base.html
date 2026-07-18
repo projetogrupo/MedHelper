@@ -29,6 +29,12 @@
            {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
           Consultas
         </a>
+        {% if user.doctor %}
+          <a href="{% url 'calendar' %}"
+             {% if request.resolver_match.url_name == 'calendar' %}class="active"{% endif %}>
+            Horários
+          </a>
+        {% endif %}
         <form method="post" action="{% url 'logout' %}" style="display: inline">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost" style="padding: .25rem .75rem">Sair</button>

@@ -311,3 +311,37 @@ tbody tr:last-child td { border-bottom: none; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .form-grid { grid-template-columns: 1fr; }
 }
+
+.agenda-grid {
+  border-collapse: collapse;
+}
+
+.agenda-grid th {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.agenda-grid td {
+  padding: 2px;
+}
+
+.slot-cell {
+  display: block;
+  width: 2.75rem;
+  height: 1.6rem;
+  border: 1px solid var(--sky-light);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+}
+
+.slot-cell:hover {
+  border-color: var(--teal);
+}
+
+.slot-on {
+  background: var(--teal);
+  border-color: var(--teal);
+}

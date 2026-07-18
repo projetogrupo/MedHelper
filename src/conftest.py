@@ -15,6 +15,34 @@ def client(db):
 
 
 @pytest.fixture
+def admin_client(db):
+    user = User.objects.create_superuser("boss", "boss@example.com", "x")
+    logged = Client()
+    logged.force_login(user)
+    return logged
+
+
+@pytest.fixture
+def doctor_client(doctor):
+    user = User.objects.create_user("dra", password="x")
+    doctor.user = user
+    doctor.save()
+    logged = Client()
+    logged.force_login(user)
+    return logged
+
+
+@pytest.fixture
+def patient_client(patient):
+    user = User.objects.create_user("ana", password="x")
+    patient.user = user
+    patient.save()
+    logged = Client()
+    logged.force_login(user)
+    return logged
+
+
+@pytest.fixture
 def patient(db):
     return Patient.objects.create(first_name="Ana", last_name="Silva")
 
