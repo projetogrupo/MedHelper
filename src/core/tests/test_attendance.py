@@ -159,6 +159,58 @@ def test_attendance_complete(doctor_client, open_appointment):
 
 
 @pytest.mark.django_db
+def test_patient_history_page_for_attending_doctor(doctor_client, open_appointment, patient, doctor):
+    Appointment.objects.create(
+        patient=patient,
+        doctor=doctor,
+        appointment_date=timezone.now() - datetime.timedelta(days=30),
+        status=Appointment.STATUS_COMPLETED,
+        notes="Histórico antigo",
+    )
+    html = doctor_client.get(
+        reverse("patient-history", args=[patient.id])
+    ).content.decode()
+    assert "Ana" in html
+    assert "Histórico antigo" in html
+
+
+@pytest.mark.django_db
+def test_patient_history_forbidden_for_unrelated_doctor(patient):
+    from core.models import Doctor
+    other = Doctor.objects.create(
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        email="rita@example.com", crm_number="CRM-9999",
+    )
+    user = User.objects.create_user("rita@example.com", password="x")
+    other.user = user
+    other.save()
+    logged = Client()
+    logged.force_login(user)
+    response = logged.get(reverse("patient-history", args=[patient.id]))
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_patient_history_forbidden_for_patients(patient_client, patient):
+    response = patient_client.get(reverse("patient-history", args=[patient.id]))
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_patient_history_allowed_for_admin(admin_client, patient):
+    response = admin_client.get(reverse("patient-history", args=[patient.id]))
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_attendance_links_to_full_history(doctor_client, open_appointment, patient):
+    html = doctor_client.get(
+        reverse("attendance", args=[open_appointment.id])
+    ).content.decode()
+    assert reverse("patient-history", args=[patient.id]) in html
+
+
+@pytest.mark.django_db
 def test_attendance_shows_patient_history(doctor_client, open_appointment, patient, doctor):
     Appointment.objects.create(
         patient=patient,

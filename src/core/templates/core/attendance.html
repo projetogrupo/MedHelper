@@ -64,7 +64,10 @@
 </div>
 
 <div class="card" style="margin-bottom: 1.5rem">
-  <p class="form-section-title">Histórico do paciente</p>
+  <div class="page-header" style="margin-bottom: .5rem">
+    <p class="form-section-title" style="margin: 0">Histórico do paciente</p>
+    <a href="{% url 'patient-history' appointment.patient.id %}" class="btn btn-ghost" style="padding:.25rem .75rem; font-size:.8rem">Ver completo</a>
+  </div>
   {% include "core/patient_history.html" %}
 </div>
 

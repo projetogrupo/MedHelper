@@ -593,6 +593,20 @@ def complete_appointment(request, appointment_id):
     return render(request, cancel_item_template(role), {"appointment": appointment}, status=200)
 
 
+@login_required
+@require_http_methods(["GET"])
+def patient_history(request, patient_id):
+    patient = get_object_or_404(Patient, id=patient_id)
+    if not request.user.is_superuser:
+        doctor = getattr(request.user, "doctor", None)
+        if doctor is None or not patient.appointments.filter(doctor=doctor).exists():
+            return HttpResponse(status=403)
+    return render(request, "core/patient_history_page.html", {
+        "patient": patient,
+        "history": patient.appointments.order_by("-appointment_date"),
+    })
+
+
 def cancel_item_template(role):
     if role == "patient":
         return "core/patient_appointment_item.html"
