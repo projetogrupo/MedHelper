@@ -11,6 +11,9 @@
     <span class="badge badge-{{ appointment.status }}">
       {{ appointment.get_status_display }}
     </span>
+    {% if appointment.is_overdue %}
+      <span class="badge badge-overdue">Atrasada</span>
+    {% endif %}
   </td>
   <td>
     {% if appointment.is_cancellable %}
