@@ -1,32 +1,6 @@
 from django import forms
 
-from .models import Appointment, Doctor, Patient
-
-
-class PatientForm(forms.ModelForm):
-    class Meta:
-        model = Patient
-        fields = ["first_name", "last_name", "birth_date", "email", "phone", "address"]
-        widgets = {
-            "birth_date": forms.DateInput(
-                attrs={"type": "date"},
-                format="%Y-%m-%d",
-            ),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Accept HTML5 date input while remaining compatible with common payloads.
-        self.fields["birth_date"].input_formats = [
-            "%Y-%m-%d",
-            "%d/%m/%Y",
-        ]
-
-
-class DoctorForm(forms.ModelForm):
-    class Meta:
-        model = Doctor
-        fields = ["first_name", "last_name", "specialty", "email", "phone", "crm_number"]
+from .models import Appointment
 
 
 class AppointmentForm(forms.ModelForm):

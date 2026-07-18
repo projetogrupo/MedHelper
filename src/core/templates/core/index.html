@@ -6,203 +6,56 @@
   <h1>Agendamento</h1>
 </div>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab(event, 'tab-appointment')">
-    Nova consulta
-  </button>
-  <button class="tab-btn" onclick="switchTab(event, 'tab-patient')">
-    Novo paciente
-  </button>
-  <button class="tab-btn" onclick="switchTab(event, 'tab-doctor')">
-    Novo médico
-  </button>
+<div class="card">
+  <p class="form-section-title">Agendar consulta</p>
+
+  <div id="appointment-result"></div>
+
+  <form hx-post="{% url 'appointment-create' %}"
+        hx-target="#appointment-result"
+        hx-swap="innerHTML"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
+
+    {% csrf_token %}
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="id_patient">Paciente</label>
+        {{ appointment_form.patient }}
+        {{ appointment_form.patient.errors }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_doctor">Médico</label>
+        {{ appointment_form.doctor }}
+        {{ appointment_form.doctor.errors }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_appointment_date">Data e hora</label>
+        {{ appointment_form.appointment_date }}
+        {{ appointment_form.appointment_date.errors }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_status">Status</label>
+        {{ appointment_form.status }}
+        {{ appointment_form.status.errors }}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1">
+        <label for="id_reason">Motivo</label>
+        {{ appointment_form.reason }}
+        {{ appointment_form.reason.errors }}
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Agendar</button>
+      <span class="htmx-indicator" aria-live="polite">Salvando…</span>
+    </div>
+  </form>
 </div>
-
-<div id="tab-appointment" class="tab-panel active">
-  <div class="card">
-    <p class="form-section-title">Agendar consulta</p>
-
-    <div id="appointment-result"></div>
-
-    <form hx-post="{% url 'appointment-create' %}"
-          hx-target="#appointment-result"
-          hx-swap="innerHTML"
-          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-          hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
-
-      {% csrf_token %}
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="id_patient">Paciente</label>
-          {{ appointment_form.patient }}
-          {{ appointment_form.patient.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_doctor">Médico</label>
-          {{ appointment_form.doctor }}
-          {{ appointment_form.doctor.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_appointment_date">Data e hora</label>
-          {{ appointment_form.appointment_date }}
-          {{ appointment_form.appointment_date.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_status">Status</label>
-          {{ appointment_form.status }}
-          {{ appointment_form.status.errors }}
-        </div>
-
-        <div class="form-group" style="grid-column: 1 / -1">
-          <label for="id_reason">Motivo</label>
-          {{ appointment_form.reason }}
-          {{ appointment_form.reason.errors }}
-        </div>
-
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Agendar</button>
-        <span class="htmx-indicator" aria-live="polite">Salvando…</span>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="tab-patient" class="tab-panel">
-  <div class="card">
-    <p class="form-section-title">Cadastrar paciente</p>
-
-    <div id="patient-result"></div>
-
-    <form hx-post="{% url 'patient-create' %}"
-          hx-target="#patient-result"
-          hx-swap="innerHTML"
-          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-          hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
-
-      {% csrf_token %}
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="id_first_name">Nome</label>
-          {{ patient_form.first_name }}
-          {{ patient_form.first_name.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_last_name">Sobrenome</label>
-          {{ patient_form.last_name }}
-          {{ patient_form.last_name.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_birth_date">Data de nascimento</label>
-          {{ patient_form.birth_date }}
-          {{ patient_form.birth_date.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_email">E-mail</label>
-          {{ patient_form.email }}
-          {{ patient_form.email.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_phone">Telefone</label>
-          {{ patient_form.phone }}
-          {{ patient_form.phone.errors }}
-        </div>
-
-        <div class="form-group" style="grid-column: 1 / -1">
-          <label for="id_address">Endereço</label>
-          {{ patient_form.address }}
-          {{ patient_form.address.errors }}
-        </div>
-
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Cadastrar</button>
-        <span class="htmx-indicator" aria-live="polite">Salvando…</span>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div id="tab-doctor" class="tab-panel">
-  <div class="card">
-    <p class="form-section-title">Cadastrar médico</p>
-
-    <div id="doctor-result"></div>
-
-    <form hx-post="{% url 'doctor-create' %}"
-          hx-target="#doctor-result"
-          hx-swap="innerHTML"
-          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-          hx-on::after-request="if(event.detail.successful && event.detail.xhr.status===201) this.reset()">
-
-      {% csrf_token %}
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="id_first_name">Nome</label>
-          {{ doctor_form.first_name }}
-          {{ doctor_form.first_name.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_last_name">Sobrenome</label>
-          {{ doctor_form.last_name }}
-          {{ doctor_form.last_name.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_specialty">Especialidade</label>
-          {{ doctor_form.specialty }}
-          {{ doctor_form.specialty.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_email">E-mail</label>
-          {{ doctor_form.email }}
-          {{ doctor_form.email.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_phone">Telefone</label>
-          {{ doctor_form.phone }}
-          {{ doctor_form.phone.errors }}
-        </div>
-
-        <div class="form-group">
-          <label for="id_crm_number">CRM</label>
-          {{ doctor_form.crm_number }}
-          {{ doctor_form.crm_number.errors }}
-        </div>
-
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Cadastrar</button>
-        <span class="htmx-indicator" aria-live="polite">Salvando…</span>
-      </div>
-    </form>
-  </div>
-</div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-function switchTab(event, panelId) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  document.getElementById(panelId).classList.add('active');
-}
-</script>
 {% endblock %}

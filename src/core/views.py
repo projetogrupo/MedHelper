@@ -4,7 +4,7 @@ from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import AppointmentForm, DoctorForm, PatientForm
+from .forms import AppointmentForm
 from .models import Appointment
 
 
@@ -12,29 +12,7 @@ from .models import Appointment
 def index(request):
     return render(request, "core/index.html", {
         "appointment_form": AppointmentForm(),
-        "patient_form":     PatientForm(),
-        "doctor_form":      DoctorForm(),
     })
-
-
-@login_required
-@require_http_methods(["POST"])
-def create_patient(request):
-    form = PatientForm(request.POST)
-    if form.is_valid():
-        patient = form.save()
-        return render(request, "core/patient_item.html", {"patient": patient}, status=201)
-    return render(request, "core/patient_form.html", {"form": form}, status=422)
-
-
-@login_required
-@require_http_methods(["POST"])
-def create_doctor(request):
-    form = DoctorForm(request.POST)
-    if form.is_valid():
-        doctor = form.save()
-        return render(request, "core/doctor_item.html", {"doctor": doctor}, status=201)
-    return render(request, "core/doctor_form.html", {"form": form}, status=422)
 
 
 @login_required
