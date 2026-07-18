@@ -39,9 +39,9 @@ class Appointment(models.Model):
 	STATUS_CANCELLED = 'cancelled'
 
 	STATUS_CHOICES = [
-		(STATUS_SCHEDULED, 'Scheduled'),
-		(STATUS_COMPLETED, 'Completed'),
-		(STATUS_CANCELLED, 'Cancelled'),
+		(STATUS_SCHEDULED, 'Agendada'),
+		(STATUS_COMPLETED, 'Concluída'),
+		(STATUS_CANCELLED, 'Cancelada'),
 	]
 
 	# Keep appointment records even if a patient/doctor is deleted.

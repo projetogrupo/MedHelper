@@ -146,7 +146,7 @@ def test_cancel_appointment_scheduled(client, appointment):
     appointment.refresh_from_db()
     assert response.status_code == 200
     assert appointment.status == "cancelled"
-    assert b"Cancelled" in response.content
+    assert "Cancelada" in response.content.decode()
 
 
 @pytest.mark.django_db
