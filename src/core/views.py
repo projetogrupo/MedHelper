@@ -485,6 +485,20 @@ def delete_appointment(request, appointment_id):
 
 @login_required
 @require_http_methods(["POST"])
+def start_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None or appointment.doctor != doctor:
+        return HttpResponse(status=403)
+    if not appointment.is_startable:
+        return HttpResponse(status=422)
+    appointment.status = Appointment.STATUS_IN_PROGRESS
+    appointment.save()
+    return redirect("appointment-list")
+
+
+@login_required
+@require_http_methods(["POST"])
 def complete_appointment(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
     role = role_of(request.user)

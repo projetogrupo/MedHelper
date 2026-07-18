@@ -149,11 +149,13 @@ class DateSlot(models.Model):
 
 class Appointment(models.Model):
 	STATUS_SCHEDULED = 'scheduled'
+	STATUS_IN_PROGRESS = 'in_progress'
 	STATUS_COMPLETED = 'completed'
 	STATUS_CANCELLED = 'cancelled'
 
 	STATUS_CHOICES = [
 		(STATUS_SCHEDULED, 'Agendada'),
+		(STATUS_IN_PROGRESS, 'Em andamento'),
 		(STATUS_COMPLETED, 'Concluída'),
 		(STATUS_CANCELLED, 'Cancelada'),
 	]
@@ -217,3 +219,10 @@ class Appointment(models.Model):
 	@property
 	def is_overdue(self):
 		return self.status == self.STATUS_SCHEDULED and self.appointment_date < timezone.now()
+
+	@property
+	def is_startable(self):
+		return (
+			self.status == self.STATUS_SCHEDULED
+			and timezone.localtime(self.appointment_date).date() <= timezone.localdate()
+		)

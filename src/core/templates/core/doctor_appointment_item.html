@@ -6,7 +6,6 @@
       {{ appointment.appointment_date|time:"H:i" }}
     </small>
   </td>
-  <td>{{ appointment.reason|default:"—"|truncatechars:60 }}</td>
   <td>
     <span class="badge badge-{{ appointment.status }}">
       {{ appointment.get_status_display }}
@@ -16,6 +15,12 @@
     {% endif %}
   </td>
   <td>
+    {% if appointment.is_startable %}
+      <form method="post" action="{% url 'appointment-start' appointment.id %}" style="display: inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" style="padding:.25rem .75rem; font-size:.8rem">Iniciar</button>
+      </form>
+    {% endif %}
     {% if appointment.is_overdue %}
       <button
         class="btn btn-primary"

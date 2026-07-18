@@ -234,6 +234,7 @@ tbody tr:last-child td { border-bottom: none; }
 .badge-completed { background: var(--green-light); color: #166534; }
 .badge-cancelled { background: #fee2e2; color: #991b1b; }
 .badge-overdue { background: #fef3c7; color: #92400e; }
+.badge-in_progress { background: #d1fae5; color: #065f46; }
 
 /* ── 12. Busca ──────────────────────────────────────────────── */
 .search-bar {

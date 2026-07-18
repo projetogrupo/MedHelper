@@ -34,8 +34,8 @@ def test_admin_sees_all_appointments(admin_client, appointment, other_appointmen
 @pytest.mark.django_db
 def test_doctor_sees_only_own_appointments(doctor_client, appointment, other_appointment):
     html = doctor_client.get(reverse("appointment-list")).content.decode()
-    assert "Checkup" in html
-    assert "Alheia" not in html
+    assert "Ana" in html
+    assert "Zeca" not in html
     assert "Excluir" not in html
 
 
