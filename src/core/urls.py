@@ -13,6 +13,7 @@ urlpatterns = [
     path("horarios/", views.calendar, name="calendar"),
     path("horarios/toggle/", views.calendar_toggle, name="calendar-toggle"),
     path("horarios/duracao/", views.calendar_duration, name="calendar-duration"),
+    path("horarios/mes/", views.calendar_month, name="calendar-month"),
     path("horarios/dia/", views.calendar_day, name="calendar-day"),
     path("horarios/dia/personalizar/", views.calendar_day_customize, name="calendar-day-customize"),
     path("horarios/dia/toggle/", views.calendar_day_toggle, name="calendar-day-toggle"),

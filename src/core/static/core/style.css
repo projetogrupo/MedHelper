@@ -447,3 +447,26 @@ tbody tr:last-child td { border-bottom: none; }
   background: var(--teal);
   color: #fff;
 }
+
+#weekly-grid {
+  user-select: none;
+}
+
+.cal-day--pick {
+  cursor: pointer;
+}
+
+.cal-day--pick:hover {
+  border-color: var(--teal);
+}
+
+.cal-day--custom {
+  box-shadow: 0 0 0 2px var(--blue-deep);
+}
+
+.agenda-grid thead th,
+.month-grid thead th {
+  background: transparent;
+  color: var(--text-secondary);
+  text-align: center;
+}

@@ -22,10 +22,10 @@
 <div class="card">
   <p class="form-section-title">Semana padrão</p>
   <p style="color: var(--text-secondary); margin-bottom: 1rem">
-    Clique nos horários em que você atende. Cada célula é um horário de
-    {{ doctor.appointment_duration }} minutos.
+    Clique ou arraste sobre os horários em que você atende. Cada célula é um
+    horário de {{ doctor.appointment_duration }} minutos.
   </p>
-  <div class="table-wrapper">
+  <div class="table-wrapper" id="weekly-grid">
     <table class="agenda-grid">
       <thead>
         <tr>
@@ -50,17 +50,49 @@
 </div>
 
 <div class="card" style="margin-top: 1.5rem">
-  <p class="form-section-title">Dia específico</p>
-  <p style="color: var(--text-secondary); margin-bottom: 1rem">
-    Escolha uma data para ajustar os horários só daquele dia.
-  </p>
-  <form hx-get="{% url 'calendar-day' %}"
-        hx-target="#day-panel"
-        hx-swap="innerHTML"
-        style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap">
-    <input type="date" name="date" required />
-    <button type="submit" class="btn btn-secondary">Ver dia</button>
-  </form>
+  <p class="form-section-title">Calendário</p>
+  {% include "core/calendar_month.html" %}
   <div id="day-panel"></div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const grid = document.getElementById('weekly-grid');
+let painting = false;
+let paintOn = false;
+let refreshTimer = null;
+
+function paintCell(cell) {
+  if (cell.classList.contains('slot-on') !== paintOn) {
+    htmx.trigger(cell, 'toggle-slot');
+  }
+}
+
+grid.addEventListener('mousedown', (event) => {
+  const cell = event.target.closest('.slot-cell');
+  if (!cell) return;
+  event.preventDefault();
+  painting = true;
+  paintOn = !cell.classList.contains('slot-on');
+  paintCell(cell);
+});
+
+grid.addEventListener('mouseover', (event) => {
+  if (!painting) return;
+  const cell = event.target.closest('.slot-cell');
+  if (cell) paintCell(cell);
+});
+
+document.addEventListener('mouseup', () => { painting = false; });
+
+document.body.addEventListener('htmx:afterRequest', (event) => {
+  if (event.target.closest && (event.target.closest('#weekly-grid') || event.target.closest('#day-panel'))) {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => {
+      htmx.trigger('#month-panel', 'refresh-month');
+    }, 400);
+  }
+});
+</script>
 {% endblock %}

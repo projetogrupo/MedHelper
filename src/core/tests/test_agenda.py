@@ -68,6 +68,35 @@ def test_doctor_nav_has_calendar_link(doctor_client):
 
 
 @pytest.mark.django_db
+def test_calendar_projects_month_from_template(doctor_client, doctor):
+    WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(8, 0))
+    html = doctor_client.get(reverse("calendar")).content.decode()
+    assert "month-grid" in html
+    assert "day-avail" in html
+
+
+@pytest.mark.django_db
+def test_calendar_marks_customized_days(doctor_client, doctor):
+    DateOverride.objects.create(doctor=doctor, date=datetime.date(2026, 7, 27))
+    response = doctor_client.get(
+        reverse("calendar-month"), {"year": 2026, "month": 7}
+    )
+    assert "cal-day--custom" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_month_endpoint_requires_doctor(patient_client):
+    response = patient_client.get(reverse("calendar-month"))
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_weekly_cells_use_paint_trigger(doctor_client):
+    html = doctor_client.get(reverse("calendar")).content.decode()
+    assert "toggle-slot" in html
+
+
+@pytest.mark.django_db
 def test_customize_date_copies_weekly_template(doctor_client, doctor):
     WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(8, 0))
     WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(9, 0))

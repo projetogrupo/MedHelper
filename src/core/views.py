@@ -84,11 +84,24 @@ def calendar(request):
     doctor = getattr(request.user, "doctor", None)
     if doctor is None:
         return HttpResponse(status=403)
-    return render(request, "core/calendar.html", {
+    year, month = parse_month(request)
+    context = {
         "doctor": doctor,
         "weekdays": WEEKDAYS,
         "rows": weekly_grid_rows(doctor),
-    })
+    }
+    context.update(doctor_month_context(doctor, year, month))
+    return render(request, "core/calendar.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def calendar_month(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    year, month = parse_month(request)
+    return render(request, "core/calendar_month.html", doctor_month_context(doctor, year, month))
 
 
 @login_required
@@ -234,7 +247,7 @@ def booking_filters(request):
     return specialty, doctor_id, doctors
 
 
-def booking_panel_context(request):
+def parse_month(request):
     today = datetime.date.today()
     try:
         year = int(request.GET.get("year", today.year))
@@ -242,6 +255,23 @@ def booking_panel_context(request):
         datetime.date(year, month, 1)
     except ValueError:
         year, month = today.year, today.month
+    return year, month
+
+
+def month_nav(year, month):
+    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
+    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return {
+        "month_label": f"{MONTHS_PT[month]} {year}",
+        "year": year, "month": month,
+        "prev_year": prev_year, "prev_month": prev_month,
+        "next_year": next_year, "next_month": next_month,
+    }
+
+
+def booking_panel_context(request):
+    today = datetime.date.today()
+    year, month = parse_month(request)
     specialty, doctor_id, doctors = booking_filters(request)
     doctors = list(doctors)
     weeks = []
@@ -255,19 +285,40 @@ def booking_panel_context(request):
             )
             row.append({"date": day, "in_month": day.month == month, "available": available})
         weeks.append(row)
-    prev_year, prev_month = (year - 1, 12) if month == 1 else (year, month - 1)
-    next_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
-    return {
+    context = {
         "specialties": Doctor.objects.order_by("specialty").values_list("specialty", flat=True).distinct(),
         "all_doctors": Doctor.objects.filter(specialty=specialty) if specialty else Doctor.objects.all(),
         "selected_specialty": specialty,
         "selected_doctor": doctor_id,
         "has_filter": bool(specialty or doctor_id),
         "weeks": weeks,
-        "month_label": f"{MONTHS_PT[month]} {year}",
-        "prev_year": prev_year, "prev_month": prev_month,
-        "next_year": next_year, "next_month": next_month,
     }
+    context.update(month_nav(year, month))
+    return context
+
+
+def doctor_month_context(doctor, year, month):
+    today = datetime.date.today()
+    customized = set(
+        doctor.date_overrides.filter(
+            date__year=year, date__month=month
+        ).values_list("date", flat=True)
+    )
+    weeks = []
+    for week in MonthGrid().monthdatescalendar(year, month):
+        row = []
+        for day in week:
+            row.append({
+                "date": day,
+                "in_month": day.month == month,
+                "future": day >= today,
+                "available": day >= today and bool(doctor.slots_for_date(day)),
+                "customized": day in customized,
+            })
+        weeks.append(row)
+    context = {"weeks": weeks}
+    context.update(month_nav(year, month))
+    return context
 
 
 @login_required
