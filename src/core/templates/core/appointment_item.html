@@ -35,6 +35,19 @@
       </button>
       {% endif %}
 
+      {% if appointment.is_overdue %}
+        <button
+          class="btn btn-primary"
+          style="padding:.25rem .75rem; font-size:.8rem"
+          hx-post="{% url 'appointment-complete' appointment.id %}"
+          hx-target="#appointment-{{ appointment.id }}"
+          hx-swap="outerHTML"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+          hx-confirm="Marcar esta consulta como concluída?"
+        >
+          Concluir
+        </button>
+      {% endif %}
       {% if appointment.is_cancellable %}
         <button
           class="btn btn-secondary"

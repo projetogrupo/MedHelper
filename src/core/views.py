@@ -457,6 +457,22 @@ def delete_appointment(request, appointment_id):
     return HttpResponse(status=200)
 
 
+@login_required
+@require_http_methods(["POST"])
+def complete_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    role = role_of(request.user)
+    if role == "patient":
+        return HttpResponse(status=403)
+    if role == "doctor" and appointment.doctor != request.user.doctor:
+        return HttpResponse(status=403)
+    if not appointment.is_overdue:
+        return render(request, cancel_item_template(role), {"appointment": appointment}, status=422)
+    appointment.status = Appointment.STATUS_COMPLETED
+    appointment.save()
+    return render(request, cancel_item_template(role), {"appointment": appointment}, status=200)
+
+
 def cancel_item_template(role):
     if role == "patient":
         return "core/patient_appointment_item.html"

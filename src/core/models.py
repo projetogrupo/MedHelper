@@ -175,3 +175,7 @@ class Appointment(models.Model):
 	@property
 	def is_cancellable(self):
 		return self.status == self.STATUS_SCHEDULED
+
+	@property
+	def is_overdue(self):
+		return self.status == self.STATUS_SCHEDULED and self.appointment_date < timezone.now()
