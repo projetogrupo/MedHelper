@@ -345,3 +345,35 @@ tbody tr:last-child td { border-bottom: none; }
   background: var(--teal);
   border-color: var(--teal);
 }
+
+.day-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.day-slot {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--sky-light);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.day-slot:hover {
+  border-color: var(--teal);
+}
+
+.day-slot.slot-on {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+.day-slot--preview {
+  cursor: default;
+  opacity: 0.75;
+}

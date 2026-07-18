@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .forms import AppointmentForm, DoctorSignupForm, PatientSignupForm
-from .models import Appointment, WeeklySlot
+from .models import Appointment, DateOverride, DateSlot, WeeklySlot
 
 
 def role_of(user):
@@ -126,6 +126,89 @@ def calendar_duration(request):
         if (minutes - base) % duration != 0 or not (GRID_START <= slot.start_time < GRID_END):
             slot.delete()
     return redirect("calendar")
+
+
+def day_panel_context(doctor, date):
+    override = doctor.date_overrides.filter(date=date).first()
+    if override is not None:
+        painted = set(override.slots.values_list("start_time", flat=True))
+    else:
+        painted = set(
+            doctor.weekly_slots.filter(weekday=date.weekday()).values_list("start_time", flat=True)
+        )
+    cells = [
+        {"time": time, "on": time in painted}
+        for time in grid_times(doctor.appointment_duration)
+    ]
+    return {"date": date, "override": override, "cells": cells}
+
+
+def parse_day(value):
+    try:
+        return datetime.date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
+
+
+@login_required
+@require_http_methods(["GET"])
+def calendar_day(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    date = parse_day(request.GET.get("date"))
+    if date is None:
+        return HttpResponse(status=400)
+    return render(request, "core/day_panel.html", day_panel_context(doctor, date))
+
+
+@login_required
+@require_http_methods(["POST"])
+def calendar_day_customize(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    date = parse_day(request.POST.get("date"))
+    if date is None:
+        return HttpResponse(status=400)
+    override, created = DateOverride.objects.get_or_create(doctor=doctor, date=date)
+    if created:
+        for slot in doctor.weekly_slots.filter(weekday=date.weekday()):
+            DateSlot.objects.create(override=override, start_time=slot.start_time)
+    return render(request, "core/day_panel.html", day_panel_context(doctor, date))
+
+
+@login_required
+@require_http_methods(["POST"])
+def calendar_day_toggle(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    date = parse_day(request.POST.get("date"))
+    if date is None:
+        return HttpResponse(status=400)
+    override = get_object_or_404(DateOverride, doctor=doctor, date=date)
+    time = datetime.datetime.strptime(request.POST["time"], "%H:%M").time()
+    slot, created = DateSlot.objects.get_or_create(override=override, start_time=time)
+    if not created:
+        slot.delete()
+    return render(request, "core/day_cell.html", {
+        "date": date,
+        "cell": {"time": time, "on": created},
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def calendar_day_remove(request):
+    doctor = getattr(request.user, "doctor", None)
+    if doctor is None:
+        return HttpResponse(status=403)
+    date = parse_day(request.POST.get("date"))
+    if date is None:
+        return HttpResponse(status=400)
+    DateOverride.objects.filter(doctor=doctor, date=date).delete()
+    return render(request, "core/day_panel.html", day_panel_context(doctor, date))
 
 
 @login_required

@@ -48,4 +48,19 @@
     </table>
   </div>
 </div>
+
+<div class="card" style="margin-top: 1.5rem">
+  <p class="form-section-title">Dia específico</p>
+  <p style="color: var(--text-secondary); margin-bottom: 1rem">
+    Escolha uma data para ajustar os horários só daquele dia.
+  </p>
+  <form hx-get="{% url 'calendar-day' %}"
+        hx-target="#day-panel"
+        hx-swap="innerHTML"
+        style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap">
+    <input type="date" name="date" required />
+    <button type="submit" class="btn btn-secondary">Ver dia</button>
+  </form>
+  <div id="day-panel"></div>
+</div>
 {% endblock %}

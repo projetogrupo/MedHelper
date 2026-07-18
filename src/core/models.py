@@ -36,6 +36,14 @@ class Doctor(models.Model):
 	def __str__(self):
 		return f"Dr. {self.first_name} {self.last_name}"
 
+	def slots_for_date(self, date):
+		override = self.date_overrides.filter(date=date).first()
+		if override is not None:
+			return sorted(override.slots.values_list('start_time', flat=True))
+		return sorted(
+			self.weekly_slots.filter(weekday=date.weekday()).values_list('start_time', flat=True)
+		)
+
 
 class WeeklySlot(models.Model):
 	doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='weekly_slots')
@@ -50,6 +58,34 @@ class WeeklySlot(models.Model):
 
 	def __str__(self):
 		return f"{self.doctor} {self.weekday} {self.start_time}"
+
+
+class DateOverride(models.Model):
+	doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='date_overrides')
+	date = models.DateField()
+
+	class Meta:
+		ordering = ['date']
+		constraints = [
+			models.UniqueConstraint(fields=['doctor', 'date'], name='unique_date_override'),
+		]
+
+	def __str__(self):
+		return f"{self.doctor} {self.date}"
+
+
+class DateSlot(models.Model):
+	override = models.ForeignKey(DateOverride, on_delete=models.CASCADE, related_name='slots')
+	start_time = models.TimeField()
+
+	class Meta:
+		ordering = ['start_time']
+		constraints = [
+			models.UniqueConstraint(fields=['override', 'start_time'], name='unique_date_slot'),
+		]
+
+	def __str__(self):
+		return f"{self.override} {self.start_time}"
 
 
 class Appointment(models.Model):
