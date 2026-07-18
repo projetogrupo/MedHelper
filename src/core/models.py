@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.db import models
 
 
 class Patient(models.Model):
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)
 	birth_date = models.DateField(null=True, blank=True)
@@ -17,6 +19,7 @@ class Patient(models.Model):
 
 
 class Doctor(models.Model):
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)
 	specialty = models.CharField(max_length=120)

@@ -1,6 +1,24 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
 from .models import Appointment, Doctor, Patient
+
+
+class DoctorInline(admin.StackedInline):
+    model = Doctor
+
+
+class PatientInline(admin.StackedInline):
+    model = Patient
+
+
+class MedHelperUserAdmin(UserAdmin):
+    inlines = (DoctorInline, PatientInline)
+
+
+admin.site.unregister(User)
+admin.site.register(User, MedHelperUserAdmin)
 
 
 @admin.register(Patient)
