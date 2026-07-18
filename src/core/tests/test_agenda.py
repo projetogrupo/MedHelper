@@ -107,6 +107,15 @@ def test_weekly_cells_use_paint_trigger(doctor_client):
 
 
 @pytest.mark.django_db
+def test_custom_day_cells_use_paint_trigger(doctor_client, doctor):
+    doctor_client.post(reverse("calendar-day-customize"), {"date": "2026-07-20"})
+    html = doctor_client.get(
+        reverse("calendar-day"), {"date": "2026-07-20"}
+    ).content.decode()
+    assert "toggle-slot" in html
+
+
+@pytest.mark.django_db
 def test_customize_date_copies_weekly_template(doctor_client, doctor):
     WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(8, 0))
     WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(9, 0))

@@ -58,7 +58,6 @@
 
 {% block extra_scripts %}
 <script>
-const grid = document.getElementById('weekly-grid');
 let painting = false;
 let paintOn = false;
 let refreshTimer = null;
@@ -69,20 +68,24 @@ function paintCell(cell) {
   }
 }
 
-grid.addEventListener('mousedown', (event) => {
-  const cell = event.target.closest('.slot-cell');
-  if (!cell) return;
-  event.preventDefault();
-  painting = true;
-  paintOn = !cell.classList.contains('slot-on');
-  paintCell(cell);
-});
+function bindPaint(container, selector) {
+  container.addEventListener('mousedown', (event) => {
+    const cell = event.target.closest(selector);
+    if (!cell) return;
+    event.preventDefault();
+    painting = true;
+    paintOn = !cell.classList.contains('slot-on');
+    paintCell(cell);
+  });
+  container.addEventListener('mouseover', (event) => {
+    if (!painting) return;
+    const cell = event.target.closest(selector);
+    if (cell) paintCell(cell);
+  });
+}
 
-grid.addEventListener('mouseover', (event) => {
-  if (!painting) return;
-  const cell = event.target.closest('.slot-cell');
-  if (cell) paintCell(cell);
-});
+bindPaint(document.getElementById('weekly-grid'), '.slot-cell');
+bindPaint(document.getElementById('day-panel'), 'button.day-slot');
 
 document.addEventListener('mouseup', () => { painting = false; });
 
