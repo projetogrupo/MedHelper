@@ -470,3 +470,7 @@ tbody tr:last-child td { border-bottom: none; }
   color: var(--text-secondary);
   text-align: center;
 }
+
+.cal-day--pick:not(.day-avail) {
+  border-color: var(--sky-light);
+}

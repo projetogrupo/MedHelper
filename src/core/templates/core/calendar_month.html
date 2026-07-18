@@ -33,7 +33,8 @@
                           class="cal-day cal-day--pick{% if day.available %} day-avail{% endif %}{% if day.customized %} cal-day--custom{% endif %}"
                           hx-get="{% url 'calendar-day' %}"
                           hx-vals='{"date": "{{ day.date|date:'Y-m-d' }}"}'
-                          hx-target="#day-panel">{{ day.date.day }}</button>
+                          hx-target="#day-panel"
+                          hx-swap="innerHTML">{{ day.date.day }}</button>
                 {% elif day.in_month %}
                   <span class="cal-day cal-day--off">{{ day.date.day }}</span>
                 {% else %}

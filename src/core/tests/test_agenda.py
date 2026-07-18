@@ -1,4 +1,5 @@
 import datetime
+import re
 
 import pytest
 from django.urls import reverse
@@ -82,6 +83,15 @@ def test_calendar_marks_customized_days(doctor_client, doctor):
         reverse("calendar-month"), {"year": 2026, "month": 7}
     )
     assert "cal-day--custom" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_month_day_buttons_do_not_inherit_outer_swap(doctor_client):
+    html = doctor_client.get(reverse("calendar-month")).content.decode()
+    buttons = re.findall(r"<button[^>]*cal-day--pick[^>]*>", html, re.S)
+    assert buttons
+    for button in buttons:
+        assert 'hx-swap="innerHTML"' in button
 
 
 @pytest.mark.django_db
