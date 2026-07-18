@@ -243,12 +243,25 @@ def booking_slots(request):
 @require_http_methods(["GET"])
 def list_appointments(request):
     query = request.GET.get("q", "").strip()
-    appointments = Appointment.objects.all()
     role = role_of(request.user)
+    if role == "patient":
+        own = Appointment.objects.filter(patient=request.user.patient)
+        now = timezone.now()
+        return render(request, "core/patient_appointments.html", {
+            "upcoming": own.filter(appointment_date__gte=now).order_by("appointment_date"),
+            "past": own.filter(appointment_date__lt=now).order_by("-appointment_date"),
+        })
     if role == "doctor":
-        appointments = appointments.filter(doctor=request.user.doctor)
-    elif role == "patient":
-        appointments = appointments.filter(patient=request.user.patient)
+        appointments = Appointment.objects.filter(doctor=request.user.doctor)
+        if query:
+            appointments = appointments.filter(
+                Q(patient__first_name__icontains=query)
+                | Q(patient__last_name__icontains=query)
+            )
+        return render(request, "core/doctor_agenda.html", {
+            "appointments": appointments.order_by("appointment_date"),
+        })
+    appointments = Appointment.objects.all()
     if query:
         appointments = appointments.filter(
             Q(patient__first_name__icontains=query)
@@ -319,6 +332,14 @@ def delete_appointment(request, appointment_id):
     return HttpResponse(status=200)
 
 
+def cancel_item_template(role):
+    if role == "patient":
+        return "core/patient_appointment_item.html"
+    if role == "doctor":
+        return "core/doctor_appointment_item.html"
+    return "core/appointment_item.html"
+
+
 @login_required
 @require_http_methods(["POST"])
 def cancel_appointment(request, appointment_id):
@@ -329,7 +350,7 @@ def cancel_appointment(request, appointment_id):
     if role == "patient" and appointment.patient != request.user.patient:
         return HttpResponse(status=403)
     if not appointment.is_cancellable:
-        return render(request, "core/appointment_item.html", {"appointment": appointment}, status=422)
+        return render(request, cancel_item_template(role), {"appointment": appointment}, status=422)
     appointment.status = Appointment.STATUS_CANCELLED
     appointment.save()
-    return render(request, "core/appointment_item.html", {"appointment": appointment}, status=200)
+    return render(request, cancel_item_template(role), {"appointment": appointment}, status=200)

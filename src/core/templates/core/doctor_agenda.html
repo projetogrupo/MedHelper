@@ -1,0 +1,52 @@
+{% extends "core/base.html" %}
+{% block title %}Minha agenda — MedHelper{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Minha agenda</h1>
+</div>
+
+<div class="search-bar">
+  <input
+    type="search"
+    name="q"
+    value="{{ request.GET.q }}"
+    placeholder="Buscar por nome do paciente…"
+    hx-get="{% url 'appointment-list' %}"
+    hx-target="#appointment-table"
+    hx-trigger="keyup changed delay:350ms, search"
+    hx-select="#appointment-table"
+    aria-label="Buscar consultas"
+  />
+</div>
+
+<div id="appointment-table">
+  {% if appointments %}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Data / Hora</th>
+            <th>Motivo</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+            {% include "core/doctor_appointment_item.html" with appointment=appt %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <strong>Nenhuma consulta encontrada.</strong>
+      {% if request.GET.q %}
+        <p>Tente outro termo de busca.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
