@@ -3,7 +3,10 @@
 {% if groups %}
   {% for group in groups %}
     {% if show_doctor_names %}
-      <p style="margin: .5rem 0 .25rem"><strong>{{ group.doctor }}</strong> — {{ group.doctor.specialty }}</p>
+      <p style="margin: .5rem 0 .25rem; display: flex; align-items: center; gap: .5rem">
+        {% include "core/avatar.html" with person=group.doctor size="avatar--sm" %}
+        <span><strong>{{ group.doctor }}</strong> — {{ group.doctor.specialty }}</span>
+      </p>
     {% endif %}
     <div class="day-grid">
       {% for t in group.times %}

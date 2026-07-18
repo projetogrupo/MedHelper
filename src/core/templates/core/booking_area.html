@@ -36,6 +36,21 @@
 
   </div>
 
+  {% if preview_doctor %}
+    <div class="doctor-preview">
+      {% include "core/avatar.html" with person=preview_doctor size="avatar--md" %}
+      <div>
+        <strong>{{ preview_doctor }}</strong>
+        <p style="margin: 0; color: var(--text-secondary)">
+          {{ preview_doctor.specialty }}{% if preview_doctor.crm_number %} · {{ preview_doctor.crm_number }}{% endif %}
+        </p>
+        <p style="margin: 0; color: var(--text-secondary); font-size: .85rem">
+          Consultas de {{ preview_doctor.appointment_duration }} minutos
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
   {% if has_filter %}
     <div class="cal-header">
       <button type="button" class="btn btn-ghost"

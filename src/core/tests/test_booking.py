@@ -216,6 +216,24 @@ def test_booking_error_names_missing_field(patient_client, monday_slots):
 
 
 @pytest.mark.django_db
+def test_selected_doctor_shows_preview_card(patient_client, monday_slots):
+    response = patient_client.get(
+        reverse("booking-panel"), {"doctor": monday_slots.id}
+    )
+    html = response.content.decode()
+    assert "doctor-preview" in html
+    assert monday_slots.specialty in html
+
+
+@pytest.mark.django_db
+def test_no_preview_without_selected_doctor(patient_client, monday_slots):
+    response = patient_client.get(
+        reverse("booking-panel"), {"specialty": monday_slots.specialty}
+    )
+    assert "doctor-preview" not in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_booking_form_hides_other_patients_and_status(patient_client):
     Patient.objects.create(first_name="Zeca", last_name="Moura")
     html = patient_client.get(reverse("index")).content.decode()
