@@ -64,7 +64,6 @@ class BookingForm(forms.Form):
     doctor = forms.ModelChoiceField(queryset=Doctor.objects.all(), label="Médico")
     date = forms.DateField(label="Data", widget=forms.DateInput(attrs={"type": "date"}))
     time = forms.TimeField(label="Horário")
-    reason = forms.CharField(required=False, label="Motivo", widget=forms.Textarea(attrs={"rows": 3}))
 
     def clean(self):
         cleaned = super().clean()

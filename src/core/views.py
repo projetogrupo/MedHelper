@@ -423,7 +423,6 @@ def create_appointment(request):
                 patient=patient,
                 doctor=form.cleaned_data["doctor"],
                 appointment_date=when,
-                reason=form.cleaned_data.get("reason", ""),
             )
             return render(request, "core/booking_confirm.html", {"appointment": appointment}, status=201)
     return render(request, "core/booking_errors.html", {"form": form}, status=422)

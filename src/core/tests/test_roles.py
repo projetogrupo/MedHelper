@@ -81,11 +81,10 @@ def test_patient_books_only_for_self(patient_client, patient, doctor, other_appo
             "doctor": doctor.id,
             "date": "2026-07-27",
             "time": "10:00",
-            "reason": "Consulta minha",
         },
     )
     assert response.status_code == 201
-    created = Appointment.objects.get(reason="Consulta minha")
+    created = Appointment.objects.exclude(id=other_appointment.id).get()
     assert created.patient == patient
 
 
