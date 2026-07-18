@@ -210,6 +210,57 @@ def test_attendance_links_to_full_history(doctor_client, open_appointment, patie
     assert reverse("patient-history", args=[patient.id]) in html
 
 
+@pytest.fixture
+def other_doctors_visit(patient):
+    from core.models import Doctor
+    other = Doctor.objects.create(
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        email="rita@example.com", crm_number="CRM-9999",
+    )
+    return Appointment.objects.create(
+        patient=patient,
+        doctor=other,
+        appointment_date=timezone.now() - datetime.timedelta(days=10),
+        status=Appointment.STATUS_COMPLETED,
+        notes="Segredo alheio",
+    )
+
+
+@pytest.mark.django_db
+def test_history_hides_other_doctors_notes(doctor_client, open_appointment, other_doctors_visit, settings, tmp_path):
+    from core.models import AppointmentDocument
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    settings.MEDIA_ROOT = tmp_path
+    AppointmentDocument.objects.create(
+        appointment=other_doctors_visit,
+        file=SimpleUploadedFile("laudo-alheio.txt", b"x"),
+    )
+    html = doctor_client.get(
+        reverse("attendance", args=[open_appointment.id])
+    ).content.decode()
+    assert "Rita" in html
+    assert "Segredo alheio" not in html
+    assert "laudo-alheio" not in html
+
+
+@pytest.mark.django_db
+def test_history_page_hides_other_doctors_notes(doctor_client, open_appointment, other_doctors_visit, patient):
+    html = doctor_client.get(
+        reverse("patient-history", args=[patient.id])
+    ).content.decode()
+    assert "Rita" in html
+    assert "Segredo alheio" not in html
+
+
+@pytest.mark.django_db
+def test_admin_sees_all_notes_in_history(admin_client, other_doctors_visit, patient):
+    html = admin_client.get(
+        reverse("patient-history", args=[patient.id])
+    ).content.decode()
+    assert "Segredo alheio" in html
+
+
 @pytest.mark.django_db
 def test_attendance_shows_patient_history(doctor_client, open_appointment, patient, doctor):
     Appointment.objects.create(

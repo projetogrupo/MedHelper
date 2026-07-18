@@ -527,6 +527,8 @@ def attendance(request, appointment_id):
     return render(request, "core/attendance.html", {
         "appointment": appointment,
         "history": history,
+        "viewer_doctor": appointment.doctor,
+        "show_all": False,
     })
 
 
@@ -597,13 +599,15 @@ def complete_appointment(request, appointment_id):
 @require_http_methods(["GET"])
 def patient_history(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
+    doctor = getattr(request.user, "doctor", None)
     if not request.user.is_superuser:
-        doctor = getattr(request.user, "doctor", None)
         if doctor is None or not patient.appointments.filter(doctor=doctor).exists():
             return HttpResponse(status=403)
     return render(request, "core/patient_history_page.html", {
         "patient": patient,
         "history": patient.appointments.order_by("-appointment_date"),
+        "viewer_doctor": doctor,
+        "show_all": request.user.is_superuser,
     })
 
 

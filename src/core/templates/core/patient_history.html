@@ -6,15 +6,17 @@
         — {{ item.doctor|default:"—" }}
         <span class="badge badge-{{ item.status }}">{{ item.get_status_display }}</span>
       </p>
-      {% if item.notes %}
-        <p style="margin: .25rem 0; white-space: pre-line">{{ item.notes }}</p>
-      {% endif %}
-      {% if item.documents.all %}
-        <p style="margin: .25rem 0">
-          {% for doc in item.documents.all %}
-            <a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a>{% if not forloop.last %} · {% endif %}
-          {% endfor %}
-        </p>
+      {% if show_all or item.doctor_id == viewer_doctor.id %}
+        {% if item.notes %}
+          <p style="margin: .25rem 0; white-space: pre-line">{{ item.notes }}</p>
+        {% endif %}
+        {% if item.documents.all %}
+          <p style="margin: .25rem 0">
+            {% for doc in item.documents.all %}
+              <a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a>{% if not forloop.last %} · {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
       {% endif %}
     </div>
   {% endfor %}
