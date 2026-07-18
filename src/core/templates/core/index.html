@@ -6,7 +6,6 @@
   <h1>Agendamento</h1>
 </div>
 
-{# ── Tabs ──────────────────────────────────────────────────── #}
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab(event, 'tab-appointment')">
     Nova consulta
@@ -19,12 +18,10 @@
   </button>
 </div>
 
-{# ── Tab: Consulta ─────────────────────────────────────────── #}
 <div id="tab-appointment" class="tab-panel active">
   <div class="card">
     <p class="form-section-title">Agendar consulta</p>
 
-    {# Resultado HTMX aparece aqui após sucesso #}
     <div id="appointment-result"></div>
 
     <form hx-post="{% url 'appointment-create' %}"
@@ -76,7 +73,6 @@
   </div>
 </div>
 
-{# ── Tab: Paciente ─────────────────────────────────────────── #}
 <div id="tab-patient" class="tab-panel">
   <div class="card">
     <p class="form-section-title">Cadastrar paciente</p>
@@ -138,7 +134,6 @@
   </div>
 </div>
 
-{# ── Tab: Médico ───────────────────────────────────────────── #}
 <div id="tab-doctor" class="tab-panel">
   <div class="card">
     <p class="form-section-title">Cadastrar médico</p>
