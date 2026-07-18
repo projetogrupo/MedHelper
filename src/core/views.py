@@ -268,17 +268,22 @@ def create_appointment(request):
         patient = form.cleaned_data.get("patient")
         if role == "patient":
             patient = request.user.patient
+        when = timezone.make_aware(
+            datetime.datetime.combine(
+                form.cleaned_data["date"], form.cleaned_data["time"]
+            )
+        )
         if patient is None:
             form.add_error("patient", "Escolha um paciente.")
+        elif Appointment.objects.filter(
+            patient=patient, appointment_date=when
+        ).exclude(status=Appointment.STATUS_CANCELLED).exists():
+            form.add_error(None, "O paciente já tem uma consulta nesse horário.")
         else:
             appointment = Appointment.objects.create(
                 patient=patient,
                 doctor=form.cleaned_data["doctor"],
-                appointment_date=timezone.make_aware(
-                    datetime.datetime.combine(
-                        form.cleaned_data["date"], form.cleaned_data["time"]
-                    )
-                ),
+                appointment_date=when,
                 reason=form.cleaned_data.get("reason", ""),
             )
             return render(request, "core/booking_confirm.html", {"appointment": appointment}, status=201)

@@ -117,6 +117,33 @@ def test_admin_books_for_chosen_patient(admin_client, patient, monday_slots):
 
 
 @pytest.mark.django_db
+def test_patient_cannot_double_book_same_time(patient_client, patient, monday_slots):
+    other_doctor = monday_slots.__class__.objects.create(
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        email="rita@example.com", crm_number="CRM-9999",
+    )
+    WeeklySlot.objects.create(doctor=other_doctor, weekday=0, start_time=datetime.time(8, 0))
+    book(other_doctor, datetime.datetime(2026, 7, 27, 8, 0), patient=patient)
+    response = patient_client.post(
+        reverse("appointment-create"),
+        {"doctor": monday_slots.id, "date": "2026-07-27", "time": "08:00"},
+    )
+    assert response.status_code == 422
+    assert Appointment.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_booking_past_date_rejected(patient_client, doctor):
+    WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(8, 0))
+    response = patient_client.post(
+        reverse("appointment-create"),
+        {"doctor": doctor.id, "date": "2026-07-13", "time": "08:00"},
+    )
+    assert response.status_code == 422
+    assert not Appointment.objects.exists()
+
+
+@pytest.mark.django_db
 def test_booking_form_hides_other_patients_and_status(patient_client):
     Patient.objects.create(first_name="Zeca", last_name="Moura")
     html = patient_client.get(reverse("index")).content.decode()
