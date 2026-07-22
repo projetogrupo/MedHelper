@@ -1,0 +1,54 @@
+<div id="month-panel"
+     hx-get="{% url 'calendar-month' %}"
+     hx-vals='{"year": "{{ year }}", "month": "{{ month }}"}'
+     hx-trigger="refresh-month"
+     hx-swap="outerHTML">
+
+  <div class="cal-header">
+    <button type="button" class="btn btn-ghost"
+            hx-get="{% url 'calendar-month' %}"
+            hx-vals='{"year": "{{ prev_year }}", "month": "{{ prev_month }}"}'
+            hx-target="#month-panel"
+            hx-swap="outerHTML">‹</button>
+    <strong>{{ month_label }}</strong>
+    <button type="button" class="btn btn-ghost"
+            hx-get="{% url 'calendar-month' %}"
+            hx-vals='{"year": "{{ next_year }}", "month": "{{ next_month }}"}'
+            hx-target="#month-panel"
+            hx-swap="outerHTML">›</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="month-grid">
+      <thead>
+        <tr><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th><th>Dom</th></tr>
+      </thead>
+      <tbody>
+        {% for week in weeks %}
+          <tr>
+            {% for day in week %}
+              <td>
+                {% if day.in_month and day.future %}
+                  <button type="button"
+                          class="cal-day cal-day--pick{% if day.available %} day-avail{% endif %}{% if day.customized %} cal-day--custom{% endif %}"
+                          hx-get="{% url 'calendar-day' %}"
+                          hx-vals='{"date": "{{ day.date|date:'Y-m-d' }}"}'
+                          hx-target="#day-panel"
+                          hx-swap="innerHTML">{{ day.date.day }}</button>
+                {% elif day.in_month %}
+                  <span class="cal-day cal-day--off">{{ day.date.day }}</span>
+                {% else %}
+                  <span class="cal-day cal-day--out">{{ day.date.day }}</span>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p style="color: var(--text-secondary); font-size: .85rem">
+    Verde: dias com atendimento pela semana padrão. Contorno: dias personalizados.
+    Clique em um dia para personalizá-lo.
+  </p>
+</div>

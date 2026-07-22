@@ -1,0 +1,108 @@
+<div id="booking-area">
+  <div class="form-grid">
+
+    <div class="form-group">
+      <label for="id_specialty">Especialidade</label>
+      <select name="specialty" id="id_specialty"
+              hx-get="{% url 'booking-panel' %}"
+              hx-trigger="change"
+              hx-target="#booking-area"
+              hx-swap="outerHTML"
+              hx-include="closest form">
+        <option value="">Todas</option>
+        {% for s in specialties %}
+          <option value="{{ s }}" {% if s == selected_specialty %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="id_doctor">Médico</label>
+      <select name="doctor" id="id_doctor"
+              hx-get="{% url 'booking-panel' %}"
+              hx-trigger="change"
+              hx-target="#booking-area"
+              hx-swap="outerHTML"
+              hx-include="closest form">
+        <option value="">{% if selected_specialty %}Qualquer médico{% else %}---------{% endif %}</option>
+        {% for d in all_doctors %}
+          <option value="{{ d.id }}"
+                  {% if d.id|stringformat:"s" == selected_doctor %}selected{% endif %}>
+            {{ d }} — {{ d.specialty }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+  </div>
+
+  {% if preview_doctor %}
+    <div class="doctor-preview">
+      {% include "core/avatar.html" with person=preview_doctor size="avatar--md" %}
+      <div>
+        <strong>{{ preview_doctor }}</strong>
+        <p style="margin: 0; color: var(--text-secondary)">
+          {{ preview_doctor.specialty }}{% if preview_doctor.crm_number %} · {{ preview_doctor.crm_number }}{% endif %}
+        </p>
+        <p style="margin: 0; color: var(--text-secondary); font-size: .85rem">
+          Consultas de {{ preview_doctor.appointment_duration }} minutos
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if has_filter %}
+    <div class="cal-header">
+      <button type="button" class="btn btn-ghost"
+              hx-get="{% url 'booking-panel' %}"
+              hx-vals='{"year": "{{ prev_year }}", "month": "{{ prev_month }}"}'
+              hx-include="closest form"
+              hx-target="#booking-area"
+              hx-swap="outerHTML">‹</button>
+      <strong>{{ month_label }}</strong>
+      <button type="button" class="btn btn-ghost"
+              hx-get="{% url 'booking-panel' %}"
+              hx-vals='{"year": "{{ next_year }}", "month": "{{ next_month }}"}'
+              hx-include="closest form"
+              hx-target="#booking-area"
+              hx-swap="outerHTML">›</button>
+    </div>
+    <div class="table-wrapper">
+      <table class="month-grid">
+        <thead>
+          <tr><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th><th>Dom</th></tr>
+        </thead>
+        <tbody>
+          {% for week in weeks %}
+            <tr>
+              {% for day in week %}
+                <td>
+                  {% if day.available %}
+                    <button type="button" class="cal-day day-avail"
+                            hx-get="{% url 'booking-day' %}"
+                            hx-vals='{"date": "{{ day.date|date:'Y-m-d' }}"}'
+                            hx-include="closest form"
+                            hx-target="#day-panel">{{ day.date.day }}</button>
+                  {% elif day.in_month %}
+                    <span class="cal-day cal-day--off">{{ day.date.day }}</span>
+                  {% else %}
+                    <span class="cal-day cal-day--out">{{ day.date.day }}</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p style="color: var(--text-secondary); font-size: .85rem">
+      Os dias em destaque têm horários livres — clique em um dia para escolher.
+    </p>
+  {% else %}
+    <p style="color: var(--text-secondary)">
+      Escolha uma especialidade ou um médico para ver os dias disponíveis.
+    </p>
+  {% endif %}
+
+  <div id="day-panel"></div>
+</div>

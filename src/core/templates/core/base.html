@@ -18,14 +18,34 @@
       <span>MedHelper</span>
     </a>
     <nav class="main-nav">
-      <a href="{% url 'index' %}"
-         {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
-        Agendar
-      </a>
-      <a href="{% url 'appointment-list' %}"
-         {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
-        Consultas
-      </a>
+      {% if user.is_authenticated %}
+        {% if user.is_superuser or user.patient %}
+          <a href="{% url 'index' %}"
+             {% if request.resolver_match.url_name == 'index' %}class="active"{% endif %}>
+            Agendar
+          </a>
+        {% endif %}
+        <a href="{% url 'appointment-list' %}"
+           {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
+          Consultas
+        </a>
+        {% if user.doctor %}
+          <a href="{% url 'calendar' %}"
+             {% if request.resolver_match.url_name == 'calendar' %}class="active"{% endif %}>
+            Horários
+          </a>
+        {% endif %}
+        {% if user.doctor or user.patient %}
+          <a href="{% url 'profile' %}"
+             {% if request.resolver_match.url_name == 'profile' %}class="active"{% endif %}>
+            Perfil
+          </a>
+        {% endif %}
+        <form method="post" action="{% url 'logout' %}" style="display: inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost" style="padding: .25rem .75rem">Sair</button>
+        </form>
+      {% endif %}
     </nav>
   </div>
 </header>

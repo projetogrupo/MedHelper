@@ -1,0 +1,23 @@
+<p class="form-section-title" style="margin-top: 1rem">{{ date|date:"l, d/m/Y" }}</p>
+
+{% if groups %}
+  {% for group in groups %}
+    {% if show_doctor_names %}
+      <p style="margin: .5rem 0 .25rem; display: flex; align-items: center; gap: .5rem">
+        {% include "core/avatar.html" with person=group.doctor size="avatar--sm" %}
+        <span><strong>{{ group.doctor }}</strong> — {{ group.doctor.specialty }}</span>
+      </p>
+    {% endif %}
+    <div class="day-grid">
+      {% for t in group.times %}
+        <label class="day-slot slot-choice">
+          <input type="radio" name="slot" value="{{ group.doctor.id }}|{{ t|time:'H:i' }}" required />
+          {{ t|time:"H:i" }}
+        </label>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}" />
+{% else %}
+  <p class="message message--error">Nenhum horário disponível neste dia.</p>
+{% endif %}

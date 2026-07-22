@@ -1,0 +1,11 @@
+<button
+  type="button"
+  class="day-slot{% if cell.on %} slot-on{% endif %}"
+  aria-pressed="{{ cell.on|yesno:'true,false' }}"
+  hx-post="{% url 'calendar-day-toggle' %}"
+  hx-vals='{"date": "{{ date|date:'Y-m-d' }}", "time": "{{ cell.time|time:'H:i' }}"}'
+  hx-trigger="toggle-slot"
+  hx-target="this"
+  hx-swap="outerHTML"
+  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+>{{ cell.time|time:"H:i" }}</button>

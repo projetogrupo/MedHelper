@@ -1,0 +1,62 @@
+{% extends "core/base.html" %}
+{% block title %}Minhas consultas — MedHelper{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Minhas consultas</h1>
+  <a href="{% url 'index' %}" class="btn btn-primary">+ Nova consulta</a>
+</div>
+
+<p class="form-section-title">Próximas</p>
+{% if upcoming %}
+  <div class="table-wrapper" style="margin-bottom: 1.5rem">
+    <table>
+      <thead>
+        <tr>
+          <th>Médico</th>
+          <th>Data / Hora</th>
+          <th>Motivo</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in upcoming %}
+          {% include "core/patient_appointment_item.html" with appointment=appt %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state" style="margin-bottom: 1.5rem">
+    <strong>Nenhuma consulta marcada.</strong>
+    <p><a href="{% url 'index' %}">Agende a sua primeira consulta.</a></p>
+  </div>
+{% endif %}
+
+<p class="form-section-title">Anteriores</p>
+{% if past %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Médico</th>
+          <th>Data / Hora</th>
+          <th>Motivo</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appt in past %}
+          {% include "core/patient_appointment_item.html" with appointment=appt %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <strong>Nenhuma consulta anterior.</strong>
+  </div>
+{% endif %}
+{% endblock %}

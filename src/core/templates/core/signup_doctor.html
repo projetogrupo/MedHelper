@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% block title %}Cadastro de médico — MedHelper{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 28rem; margin: 2rem auto">
+  <p class="form-section-title">Cadastro de médico</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <div class="form-actions" style="margin-top: 1rem">
+      <button type="submit" class="btn btn-primary">Criar conta</button>
+      <a href="{% url 'signup' %}" class="btn btn-ghost">Voltar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,10 +1,9 @@
 {% extends "core/base.html" %}
-{% block title %}Consultas — MedHelper{% endblock %}
+{% block title %}Minha agenda — MedHelper{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>Consultas</h1>
-  <a href="{% url 'index' %}" class="btn btn-primary">+ Nova consulta</a>
+  <h1>Minha agenda</h1>
 </div>
 
 <div class="search-bar">
@@ -28,16 +27,14 @@
         <thead>
           <tr>
             <th>Paciente</th>
-            <th>Médico</th>
             <th>Data / Hora</th>
-            <th>Motivo</th>
             <th>Status</th>
             <th>Ações</th>
           </tr>
         </thead>
-        <tbody id="appointment-rows">
+        <tbody>
           {% for appt in appointments %}
-            {% include "core/appointment_item.html" with appointment=appt %}
+            {% include "core/doctor_appointment_item.html" with appointment=appt %}
           {% endfor %}
         </tbody>
       </table>
@@ -45,13 +42,9 @@
   {% else %}
     <div class="empty-state">
       <strong>Nenhuma consulta encontrada.</strong>
-      <p>
-        {% if request.GET.q %}
-          Tente outro termo de busca.
-        {% else %}
-          <a href="{% url 'index' %}">Agende a primeira consulta.</a>
-        {% endif %}
-      </p>
+      {% if request.GET.q %}
+        <p>Tente outro termo de busca.</p>
+      {% endif %}
     </div>
   {% endif %}
 </div>

@@ -1,0 +1,101 @@
+{% extends "core/base.html" %}
+{% block title %}Horários — MedHelper{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Horários</h1>
+</div>
+
+<div class="card" style="margin-bottom: 1.5rem">
+  <p class="form-section-title">Duração da consulta</p>
+  <form method="post" action="{% url 'calendar-duration' %}"
+        onsubmit="return confirm('Alterar a duração remove horários que não se encaixam na nova grade. Continuar?')"
+        style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap">
+    {% csrf_token %}
+    <label for="id_duration">Minutos por consulta</label>
+    <input id="id_duration" name="duration" type="number" min="5" max="240" step="5"
+           value="{{ doctor.appointment_duration }}" style="width: 6rem" />
+    <button type="submit" class="btn btn-primary">Salvar</button>
+  </form>
+</div>
+
+<div class="card">
+  <p class="form-section-title">Semana padrão</p>
+  <p style="color: var(--text-secondary); margin-bottom: 1rem">
+    Clique ou arraste sobre os horários em que você atende. Cada célula é um
+    horário de {{ doctor.appointment_duration }} minutos.
+  </p>
+  <div class="table-wrapper" id="weekly-grid">
+    <table class="agenda-grid">
+      <thead>
+        <tr>
+          <th></th>
+          {% for weekday, label in weekdays %}
+            <th>{{ label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <th>{{ row.time|time:"H:i" }}</th>
+            {% for cell in row.cells %}
+              <td>{% include "core/weekly_cell.html" %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card" style="margin-top: 1.5rem">
+  <p class="form-section-title">Calendário</p>
+  {% include "core/calendar_month.html" %}
+  <div id="day-panel"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let painting = false;
+let paintOn = false;
+let refreshTimer = null;
+
+function paintCell(cell) {
+  if (cell.classList.contains('slot-on') !== paintOn) {
+    htmx.trigger(cell, 'toggle-slot');
+  }
+}
+
+function bindPaint(container, selector) {
+  container.addEventListener('mousedown', (event) => {
+    const cell = event.target.closest(selector);
+    if (!cell) return;
+    event.preventDefault();
+    painting = true;
+    paintOn = !cell.classList.contains('slot-on');
+    paintCell(cell);
+  });
+  container.addEventListener('mouseover', (event) => {
+    if (!painting) return;
+    const cell = event.target.closest(selector);
+    if (cell) paintCell(cell);
+  });
+}
+
+bindPaint(document.getElementById('weekly-grid'), '.slot-cell');
+bindPaint(document.getElementById('day-panel'), 'button.day-slot');
+
+document.addEventListener('mouseup', () => { painting = false; });
+
+document.body.addEventListener('htmx:afterRequest', (event) => {
+  if (event.target.closest && (event.target.closest('#weekly-grid') || event.target.closest('#day-panel'))) {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => {
+      htmx.trigger('#month-panel', 'refresh-month');
+    }, 400);
+  }
+});
+</script>
+{% endblock %}
