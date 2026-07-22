@@ -7,16 +7,16 @@ maintainability, size) and [pylint](https://pylint.readthedocs.io/) over
 
 ## Progression
 
-| Metric | Milestone 0 (baseline) |
-|---|---|
-| Blocks analyzed (CC) | 26 |
-| Avg cyclomatic complexity | 1.35 |
-| Max cyclomatic complexity | 2 |
-| Avg maintainability index | 92.26 |
-| Min maintainability index | 51.35 |
-| Total LOC / SLOC | 471 / 321 |
-| Pylint findings | 55 |
-| Pylint score | 8.06/10 |
+| Metric | Milestone 0 (baseline) | Milestone 1 |
+|---|---|---|
+| Blocks analyzed (CC) | 26 | 110 |
+| Avg cyclomatic complexity | 1.35 | 2.46 |
+| Max cyclomatic complexity | 2 | 10 |
+| Avg maintainability index | 92.26 | 79.54 |
+| Min maintainability index | 51.35 | 3.49 |
+| Total LOC / SLOC | 471 / 321 | 1343 / 1061 |
+| Pylint findings | 55 | 266 |
+| Pylint score | 8.06/10 | 8.03/10 |
 
 _A new column is added for each completed milestone._
 
@@ -41,3 +41,17 @@ CRUD endpoints, Docker/Postgres).
   **51.35**, as it holds most of the request-handling logic.
 - Pylint **8.06/10** — mostly `models.py` indentation and a few over-length
   lines (formatting, not logic).
+
+### Milestone 1 — Accounts, scheduling and attendance
+
+Backend after the accounts/roles, doctor availability, patient booking, and
+attendance features landed (PR #58). The backend roughly tripled in size
+(321 → 1061 SLOC).
+
+- Complexity rose but stays reasonable: average **2.46**, with the most complex
+  block at **10** (still rank B/C, not alarming).
+- Maintainability dropped, driven by `views.py` — now ~635 lines and MI **3.49**
+  (rank C). It carries most of the scheduling/attendance logic and is the main
+  candidate for splitting into smaller modules.
+- Pylint held roughly steady at **8.03/10** despite the 5x growth in findings,
+  which scale with the added code.
