@@ -463,11 +463,16 @@ def create_appointment(request):
 
 
 @login_required
-@require_http_methods(["PUT"])
+@require_http_methods(["GET", "PUT"])
 def update_appointment(request, appointment_id):
     if not request.user.is_superuser:
         return HttpResponse(status=403)
     appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == "GET":
+        return render(request, "core/appointment_update_form.html", {
+            "form": AppointmentForm(instance=appointment),
+            "appointment": appointment,
+        })
     form = AppointmentForm(QueryDict(request.body), instance=appointment)
     if form.is_valid():
         form.save()
@@ -476,7 +481,7 @@ def update_appointment(request, appointment_id):
     context = {
         "form": AppointmentForm(instance=appointment),
         "appointment": appointment,
-        "error": "Invalid input - changes not saved",
+        "error": "Entrada inválida — alterações não salvas",
     }
     return render(request, "core/appointment_update_form.html", context, status=422)
 
