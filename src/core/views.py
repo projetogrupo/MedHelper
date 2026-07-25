@@ -400,9 +400,9 @@ def booking_day(request):
 
 
 CHAT_SESSION_KEY = "specialty_chat_history"
-# Quantas mensagens vão para o modelo a cada turno (limita tokens).
+# How many messages go to the model each turn (bounds token usage).
 CHAT_MODEL_WINDOW = 12
-# Quantas mensagens ficam guardadas na sessão.
+# How many messages are kept in the session.
 CHAT_STORED_LIMIT = 30
 
 
@@ -622,7 +622,7 @@ def attendance_doc_add(request, appointment_id):
 @login_required
 @require_http_methods(["POST"])
 def attendance_transcribe(request, appointment_id):
-    """Gera o documento da consulta a partir de um áudio do atendimento."""
+    """Generate the appointment document from an audio recording."""
     appointment = own_attendance(request, appointment_id)
     if appointment is None:
         return HttpResponse(status=403)

@@ -1,6 +1,6 @@
-"""Testes do chat de orientação de especialidade.
+"""Tests for the specialty guidance chat.
 
-A chamada ao modelo é mockada: o CI não acessa a rede nem consome crédito.
+The model call is mocked: CI never hits the network or spends credit.
 """
 from unittest.mock import patch
 
@@ -17,7 +17,7 @@ def test_page_renders_for_patient(patient_client):
     assert response.status_code == 200
     html = response.content.decode()
     assert "Qual especialista procurar?" in html
-    assert "Olá!" in html  # saudação inicial (sem custo de API)
+    assert "Olá!" in html  # static greeting (no API cost)
 
 
 @pytest.mark.django_db
@@ -64,7 +64,7 @@ def test_history_persists_between_messages(patient_client):
     html = response.content.decode()
     for expected in ("Oi", "R1", "Dor de cabeça", "R2"):
         assert expected in html
-    # o segundo turno envia a conversa acumulada ao modelo
+    # the second turn sends the accumulated conversation to the model
     second_call_history = mock_reply.call_args.args[0]
     assert len(second_call_history) == 3
 
@@ -109,7 +109,7 @@ def test_api_error_shows_friendly_message(patient_client):
     html = response.content.decode()
     assert response.status_code == 200
     assert "indisponível" in html
-    assert "boom" not in html  # não vaza o erro interno
+    assert "boom" not in html  # internal error must not leak
 
 
 @pytest.mark.django_db

@@ -1,12 +1,16 @@
-"""Geração do documento da consulta: áudio -> transcrição -> nota clínica -> PDF.
+"""AI features: appointment document generation and the specialty guidance chat.
 
-A transcrição roda localmente (faster-whisper), então o áudio nunca sai da
-máquina. Só o texto transcrito é enviado ao modelo que estrutura a nota.
+Document pipeline: audio -> transcription -> clinical note -> PDF.
+Transcription runs locally (faster-whisper), so the audio never leaves the
+machine; only the transcribed text is sent to the model that structures the
+note.
 
-As bibliotecas pesadas (faster-whisper, anthropic, reportlab) são importadas
-dentro das funções de propósito: carregá-las na importação do módulo deixaria
-todo comando do Django (inclusive migrate e os testes) mais lento sem
-necessidade.
+Heavy libraries (faster-whisper, anthropic, reportlab) are imported inside
+the functions on purpose: importing them at module load would slow down
+every Django command (including migrate and the test suite) for no benefit.
+
+Prompts and user-visible strings are in Portuguese by design — the product
+UI is pt-BR.
 """
 # pylint: disable=import-outside-toplevel
 import io
@@ -18,20 +22,20 @@ from django.utils import timezone
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL_SIZE", "base")
 CLAUDE_MODEL = "claude-opus-4-8"
 
-# Cache do modelo de transcrição: o load é caro e deve acontecer uma vez só.
+# Transcription model cache: loading is expensive and must happen only once.
 _CACHE = {}
 
 
 class TranscriptionUnavailable(RuntimeError):
-    """faster-whisper não está instalado neste ambiente."""
+    """faster-whisper is not installed in this environment."""
 
 
 class NoteGenerationUnavailable(RuntimeError):
-    """ANTHROPIC_API_KEY não configurada."""
+    """ANTHROPIC_API_KEY is not configured."""
 
 
 def _get_whisper_model():
-    """Carrega o modelo uma vez por processo (o load é caro)."""
+    """Load the model once per process (loading is expensive)."""
     if "whisper" not in _CACHE:
         try:
             from faster_whisper import WhisperModel
@@ -46,7 +50,7 @@ def _get_whisper_model():
 
 
 def transcribe_audio(audio_path):
-    """Transcreve um arquivo de áudio para texto (português)."""
+    """Transcribe an audio file to text (Portuguese)."""
     model = _get_whisper_model()
     segments, _info = model.transcribe(str(audio_path), language="pt", vad_filter=True)
     return " ".join(segment.text.strip() for segment in segments).strip()
@@ -81,7 +85,7 @@ NOTE_SCHEMA = {
 
 
 def build_medical_note(transcript, api_key=None):
-    """Converte a transcrição crua numa nota clínica estruturada (dict)."""
+    """Turn the raw transcript into a structured clinical note (dict)."""
     import anthropic
 
     key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -113,7 +117,7 @@ def build_medical_note(transcript, api_key=None):
 
 
 def _pdf_styles():
-    """Estilos de parágrafo do documento, nas cores do MedHelper."""
+    """Paragraph styles for the document, in MedHelper colors."""
     from reportlab.lib import colors
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 
@@ -139,7 +143,7 @@ def _pdf_styles():
 
 
 def render_note_pdf(appointment, note):
-    """Gera o PDF do documento da consulta e devolve os bytes."""
+    """Render the appointment document PDF and return its bytes."""
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import cm
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
@@ -186,14 +190,14 @@ def render_note_pdf(appointment, note):
 
 
 def note_to_text(note):
-    """Versão em texto puro da nota, para guardar em Appointment.transcript."""
+    """Plain-text version of the note, stored in Appointment.transcript."""
     return "\n\n".join(
         f"{label}:\n{note.get(key) or 'Não relatado'}" for key, label in SECTIONS
     )
 
 
 class AssistantUnavailable(RuntimeError):
-    """ANTHROPIC_API_KEY não configurada (chat de orientação)."""
+    """ANTHROPIC_API_KEY is not configured (guidance chat)."""
 
 
 CHAT_SYSTEM_PROMPT = """Você é o assistente virtual do MedHelper. Sua única \
@@ -220,10 +224,10 @@ listas ou títulos)."""
 
 
 def specialty_chat_reply(history, specialties=(), api_key=None):
-    """Responde uma conversa do chat de orientação de especialidade.
+    """Answer one turn of the specialty guidance chat.
 
-    ``history`` é a lista de mensagens ``{"role", "content"}`` terminando com
-    a mensagem do paciente; devolve o texto da resposta do assistente.
+    ``history`` is the list of ``{"role", "content"}`` messages ending with
+    the patient's message; returns the assistant's reply text.
     """
     import anthropic
 
@@ -244,5 +248,5 @@ def specialty_chat_reply(history, specialties=(), api_key=None):
     reply = next(
         block.text for block in response.content if block.type == "text"
     ).strip()
-    # A página exibe texto puro; remove negrito markdown que escape do prompt.
+    # The page renders plain text; strip markdown bold that slips past the prompt.
     return reply.replace("**", "")

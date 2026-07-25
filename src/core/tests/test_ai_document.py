@@ -1,7 +1,7 @@
-"""Testes da geração do documento da consulta por IA.
+"""Tests for the AI appointment document generation.
 
-A transcrição (faster-whisper) e a chamada ao modelo são mockadas: o CI não
-deve baixar modelos, acessar a rede nem consumir crédito de API.
+Transcription (faster-whisper) and the model call are mocked: CI must not
+download models, hit the network or spend API credit.
 """
 from unittest.mock import patch
 
@@ -28,7 +28,7 @@ def audio():
 
 @pytest.fixture
 def own_appointment(appointment, doctor_client):
-    """Consulta pertencente ao médico logado em doctor_client."""
+    """Appointment owned by the doctor logged in via doctor_client."""
     return appointment
 
 
@@ -77,7 +77,7 @@ def test_patient_cannot_generate(patient_client, appointment, audio):
 
 @pytest.mark.django_db
 def test_other_doctor_cannot_generate(admin_client, appointment, audio):
-    """Admin não é o médico da consulta — own_attendance recusa."""
+    """The admin is not the appointment's doctor — own_attendance refuses."""
     response = admin_client.post(
         reverse("attendance-transcribe", args=[appointment.id]), {"audio": audio}
     )
@@ -96,7 +96,7 @@ def test_missing_audio_is_rejected(doctor_client, own_appointment):
 
 @pytest.mark.django_db
 def test_empty_transcription_does_not_save(doctor_client, own_appointment, audio):
-    """Áudio sem fala reconhecível não deve gerar documento."""
+    """Audio with no recognizable speech must not produce a document."""
     with patch.object(ai, "transcribe_audio", return_value=""):
         response = doctor_client.post(
             reverse("attendance-transcribe", args=[own_appointment.id]),
