@@ -21,7 +21,35 @@ So far, AI assistance has primarily been used for:
   service, and the environment-variable-driven settings;
 * setting up the radon/pylint code-metrics tooling, the CI pipeline, and the
   per-milestone metrics documentation;
+* implementing the appointment document generation feature described below;
 * general development support and debugging assistance.
+
+## AI Inside the Product
+
+Beyond assisting development, the application itself uses AI in one feature:
+generating a structured medical document from the audio of an appointment.
+
+The pipeline has three stages:
+
+1. **Transcription (audio to text)** — runs locally with
+   [faster-whisper](https://github.com/SYSTRAN/faster-whisper). The audio file
+   never leaves the machine.
+2. **Structuring (text to clinical note)** — the transcript is sent to
+   Anthropic's Claude (`claude-opus-4-8`) via the official SDK, which organizes
+   it into fixed sections (chief complaint, history, findings, diagnostic
+   hypothesis, plan, follow-up). The prompt instructs the model to rely only on
+   what the transcript contains and to write "Não relatado" for sections with no
+   information, to avoid fabricating clinical data.
+3. **Rendering (note to PDF)** — `reportlab` produces the final document. This
+   step involves no AI.
+
+Privacy note: only the transcribed text is sent to an external service; the
+recording stays local. The generated PDF carries a notice that it was produced
+with AI assistance and must be reviewed by the responsible professional before
+clinical use.
+
+The automated tests mock both the transcription and the model call, so the test
+suite requires no API key, no network access, and consumes no API credit.
 
 ## Human Oversight
 

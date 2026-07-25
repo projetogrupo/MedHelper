@@ -1,15 +1,21 @@
 import datetime
+import os
+import pathlib
+import tempfile
 from calendar import Calendar as MonthGrid
 
 from django.utils import timezone
 
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
+from . import ai
 from .forms import (
     AppointmentForm,
     BookingForm,
@@ -552,6 +558,50 @@ def attendance_doc_add(request, appointment_id):
     uploaded = request.FILES.get("file")
     if uploaded is not None:
         AppointmentDocument.objects.create(appointment=appointment, file=uploaded)
+    return redirect("attendance", appointment_id=appointment.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_transcribe(request, appointment_id):
+    """Gera o documento da consulta a partir de um áudio do atendimento."""
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+    uploaded = request.FILES.get("audio")
+    if uploaded is None:
+        messages.error(request, "Selecione um arquivo de áudio.")
+        return redirect("attendance", appointment_id=appointment.id)
+
+    suffix = pathlib.Path(uploaded.name).suffix or ".wav"
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        for chunk in uploaded.chunks():
+            tmp.write(chunk)
+        audio_path = tmp.name
+
+    try:
+        transcript = ai.transcribe_audio(audio_path)
+        if not transcript:
+            messages.error(request, "Não foi possível extrair fala do áudio enviado.")
+            return redirect("attendance", appointment_id=appointment.id)
+        note = ai.build_medical_note(transcript)
+        pdf_bytes = ai.render_note_pdf(appointment, note)
+    except (ai.TranscriptionUnavailable, ai.NoteGenerationUnavailable) as exc:
+        messages.error(request, str(exc))
+        return redirect("attendance", appointment_id=appointment.id)
+    except Exception as exc:  # pylint: disable=broad-except
+        messages.error(request, f"Falha ao gerar o documento: {exc}")
+        return redirect("attendance", appointment_id=appointment.id)
+    finally:
+        os.unlink(audio_path)
+
+    appointment.transcript = ai.note_to_text(note)
+    appointment.transcript_pdf.save(
+        f"consulta-{appointment.id}.pdf", ContentFile(pdf_bytes), save=False
+    )
+    appointment.transcript_created_at = timezone.now()
+    appointment.save()
+    messages.success(request, "Documento da consulta gerado com sucesso.")
     return redirect("attendance", appointment_id=appointment.id)
 
 
