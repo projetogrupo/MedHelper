@@ -25,3 +25,12 @@ key the rest of the application works normally — only this feature is disabled
 The transcription model (~150 MB) is downloaded automatically on first use.
 Set `WHISPER_MODEL_SIZE` to trade speed for accuracy (`tiny`, `base` (default),
 `small`, `medium`).
+
+## Specialty guidance chatbot (AI)
+
+Patients get an "Orientação" page with a chat assistant that helps them decide
+which medical specialty to pursue — its only allowed topic. It never gives
+diagnoses or treatment advice, prefers the specialties registered in the
+clinic, and points to emergency services when red-flag symptoms are described.
+Uses the same `ANTHROPIC_API_KEY`; without it, the rest of the app works
+normally and the chat shows a configuration message instead.

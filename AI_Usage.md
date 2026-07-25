@@ -26,8 +26,21 @@ So far, AI assistance has primarily been used for:
 
 ## AI Inside the Product
 
-Beyond assisting development, the application itself uses AI in one feature:
-generating a structured medical document from the audio of an appointment.
+Beyond assisting development, the application itself uses AI in two features.
+
+### Specialty guidance chatbot
+
+Patients have a chat assistant ("Orientação") that helps them decide which
+medical specialty to pursue based on what they describe. The conversation runs
+on Anthropic's Claude (`claude-opus-4-8`) with a system prompt that restricts
+it to this single topic: it refuses anything else, never gives diagnoses or
+treatment advice, prefers the specialties actually registered in the clinic,
+and directs the patient to emergency services (192) when red-flag symptoms
+appear. Conversation history is kept in the server-side session only.
+
+### Appointment document generation
+
+Generates a structured medical document from the audio of an appointment.
 
 The pipeline has three stages:
 

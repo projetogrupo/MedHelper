@@ -25,6 +25,12 @@
             Agendar
           </a>
         {% endif %}
+        {% if user.patient %}
+          <a href="{% url 'specialty-chat' %}"
+             {% if request.resolver_match.url_name == 'specialty-chat' %}class="active"{% endif %}>
+            Orientação
+          </a>
+        {% endif %}
         <a href="{% url 'appointment-list' %}"
            {% if request.resolver_match.url_name == 'appointment-list' %}class="active"{% endif %}>
           Consultas

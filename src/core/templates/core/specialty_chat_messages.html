@@ -1,0 +1,15 @@
+{% if history %}
+  {% for msg in history %}
+    <div class="chat-msg {% if msg.role == 'user' %}chat-msg--user{% else %}chat-msg--bot{% endif %}">
+      {{ msg.content|linebreaksbr }}
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="chat-msg chat-msg--bot">
+    Olá! Me conte o que você está sentindo, ou o que precisa resolver, e eu te
+    ajudo a descobrir qual especialidade procurar.
+  </div>
+{% endif %}
+{% if error %}
+  <p class="message message--error" style="margin: .25rem 0 0">{{ error }}</p>
+{% endif %}

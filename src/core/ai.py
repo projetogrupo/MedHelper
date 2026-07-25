@@ -190,3 +190,59 @@ def note_to_text(note):
     return "\n\n".join(
         f"{label}:\n{note.get(key) or 'Não relatado'}" for key, label in SECTIONS
     )
+
+
+class AssistantUnavailable(RuntimeError):
+    """ANTHROPIC_API_KEY não configurada (chat de orientação)."""
+
+
+CHAT_SYSTEM_PROMPT = """Você é o assistente virtual do MedHelper. Sua única \
+função é ajudar o paciente a identificar QUAL ESPECIALIDADE MÉDICA procurar, \
+a partir do que ele relata.
+
+Regras:
+- Fale somente sobre a escolha de especialidade. Se o paciente puxar qualquer \
+outro assunto (diagnósticos, medicamentos, exames, conversa casual, ajuda com \
+outras tarefas...), recuse com gentileza e traga a conversa de volta ao tema.
+- Não faça diagnóstico nem sugira tratamento ou medicação.
+- Se faltar informação para recomendar, faça uma pergunta de esclarecimento \
+por vez.
+- Ao recomendar, indique a especialidade e explique em uma frase o porquê. \
+Especialidades disponíveis nesta clínica: {specialties}. Se nenhuma delas \
+atender, diga qual especialidade o paciente deve buscar fora da clínica.
+- Diante de sinais de emergência (dor no peito intensa, falta de ar grave, \
+confusão súbita, sangramento importante, ideação suicida), oriente procurar \
+um pronto-socorro ou ligar 192 imediatamente.
+- Responda em português do Brasil, em tom acolhedor, com no máximo 120 \
+palavras por mensagem.
+- Responda em texto puro, sem formatação markdown (nada de asteriscos, \
+listas ou títulos)."""
+
+
+def specialty_chat_reply(history, specialties=(), api_key=None):
+    """Responde uma conversa do chat de orientação de especialidade.
+
+    ``history`` é a lista de mensagens ``{"role", "content"}`` terminando com
+    a mensagem do paciente; devolve o texto da resposta do assistente.
+    """
+    import anthropic
+
+    key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        raise AssistantUnavailable("ANTHROPIC_API_KEY não configurada no .env")
+
+    listed = ", ".join(specialties) if specialties else "nenhuma cadastrada no momento"
+    client = anthropic.Anthropic(api_key=key)
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=1000,
+        system=CHAT_SYSTEM_PROMPT.format(specialties=listed),
+        thinking={"type": "adaptive"},
+        output_config={"effort": "low"},
+        messages=list(history),
+    )
+    reply = next(
+        block.text for block in response.content if block.type == "text"
+    ).strip()
+    # A página exibe texto puro; remove negrito markdown que escape do prompt.
+    return reply.replace("**", "")

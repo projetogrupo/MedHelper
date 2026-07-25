@@ -1,0 +1,61 @@
+{% extends "core/base.html" %}
+{% block title %}Orientação — MedHelper{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Qual especialista procurar?</h1>
+</div>
+
+<div class="card" style="max-width: 44rem">
+  <p style="color: var(--text-secondary); margin-bottom: 1rem">
+    Conte o que você está sentindo e o assistente indica a especialidade mais
+    adequada. Ele não faz diagnóstico nem substitui uma consulta — e, em caso
+    de emergência, procure um pronto-socorro ou ligue 192.
+  </p>
+
+  <div id="chat-messages" class="chat-box">
+    {% include "core/specialty_chat_messages.html" %}
+  </div>
+
+  <form hx-post="{% url 'specialty-chat-send' %}"
+        hx-target="#chat-messages"
+        hx-swap="innerHTML"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-on::after-request="this.reset()"
+        style="display: flex; gap: .75rem; margin-top: 1rem">
+    {% csrf_token %}
+    <input type="text" name="message" maxlength="500" required
+           placeholder="Descreva o que você está sentindo…"
+           aria-label="Mensagem para o assistente"
+           autocomplete="off"
+           style="flex: 1" />
+    <button type="submit" class="btn btn-primary">Enviar</button>
+    <span class="htmx-indicator" aria-live="polite"
+          style="color: var(--text-secondary); align-self: center">Pensando…</span>
+  </form>
+
+  <form hx-post="{% url 'specialty-chat-reset' %}"
+        hx-target="#chat-messages"
+        hx-swap="innerHTML"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        style="margin-top: .5rem">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-ghost"
+            style="padding: .25rem .75rem; font-size: .8rem">
+      Limpar conversa
+    </button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chatBox = document.getElementById('chat-messages');
+chatBox.scrollTop = chatBox.scrollHeight;
+document.body.addEventListener('htmx:afterSwap', (event) => {
+  if (event.target.id === 'chat-messages') {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+});
+</script>
+{% endblock %}
