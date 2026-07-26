@@ -6,6 +6,13 @@
   <h1>Agendamento</h1>
 </div>
 
+{% if user.patient %}
+  <p style="margin: -.5rem 0 1rem; color: var(--text-secondary)">
+    Não sabe qual especialidade escolher?
+    <a href="{% url 'specialty-chat' %}">Converse com o assistente</a>.
+  </p>
+{% endif %}
+
 <div class="card">
   <p class="form-section-title">Agendar consulta</p>
 

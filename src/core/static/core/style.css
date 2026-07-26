@@ -519,3 +519,36 @@ tbody tr:last-child td { border-bottom: none; }
 .history-item:last-child {
   border-bottom: none;
 }
+
+/* ── Chat de orientação de especialidade ───────────────────── */
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid var(--sky-light);
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+}
+
+.chat-msg {
+  max-width: 85%;
+  padding: .5rem .75rem;
+  border-radius: var(--radius-md);
+  font-size: .95rem;
+  line-height: 1.45;
+}
+
+.chat-msg--bot {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid var(--sky-light);
+}
+
+.chat-msg--user {
+  align-self: flex-end;
+  background: var(--teal);
+  color: #fff;
+}

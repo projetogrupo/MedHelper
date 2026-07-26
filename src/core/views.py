@@ -399,6 +399,64 @@ def booking_day(request):
     })
 
 
+CHAT_SESSION_KEY = "specialty_chat_history"
+# Quantas mensagens vão para o modelo a cada turno (limita tokens).
+CHAT_MODEL_WINDOW = 12
+# Quantas mensagens ficam guardadas na sessão.
+CHAT_STORED_LIMIT = 30
+
+
+def _clinic_specialties():
+    return list(
+        Doctor.objects.order_by("specialty").values_list("specialty", flat=True).distinct()
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def specialty_chat(request):
+    if role_of(request.user) != "patient":
+        return HttpResponse(status=403)
+    return render(request, "core/specialty_chat.html", {
+        "history": request.session.get(CHAT_SESSION_KEY, []),
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def specialty_chat_send(request):
+    if role_of(request.user) != "patient":
+        return HttpResponse(status=403)
+    history = request.session.get(CHAT_SESSION_KEY, [])
+    text = request.POST.get("message", "").strip()
+    error = None
+    if text:
+        history.append({"role": "user", "content": text[:500]})
+        try:
+            reply = ai.specialty_chat_reply(
+                history[-CHAT_MODEL_WINDOW:], _clinic_specialties()
+            )
+            history.append({"role": "assistant", "content": reply})
+        except ai.AssistantUnavailable as exc:
+            error = str(exc)
+        except Exception:  # pylint: disable=broad-except
+            error = "O assistente está indisponível no momento. Tente novamente."
+        request.session[CHAT_SESSION_KEY] = history[-CHAT_STORED_LIMIT:]
+    return render(request, "core/specialty_chat_messages.html", {
+        "history": request.session.get(CHAT_SESSION_KEY, []),
+        "error": error,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def specialty_chat_reset(request):
+    if role_of(request.user) != "patient":
+        return HttpResponse(status=403)
+    request.session[CHAT_SESSION_KEY] = []
+    return render(request, "core/specialty_chat_messages.html", {"history": []})
+
+
 @login_required
 @require_http_methods(["GET"])
 def list_appointments(request):
