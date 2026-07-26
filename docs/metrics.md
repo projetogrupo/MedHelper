@@ -7,18 +7,19 @@ maintainability, size) and [pylint](https://pylint.readthedocs.io/) over
 
 ## Progression
 
-| Metric | Milestone 0 (baseline) | Milestone 1 |
-|---|---|---|
-| Blocks analyzed (CC) | 26 | 110 |
-| Avg cyclomatic complexity | 1.35 | 2.46 |
-| Max cyclomatic complexity | 2 | 10 |
-| Avg maintainability index | 92.26 | 79.54 |
-| Min maintainability index | 51.35 | 3.49 |
-| Total LOC / SLOC | 471 / 321 | 1343 / 1061 |
-| Pylint findings | 55 | 266 |
-| Pylint score | 8.06/10 | 8.03/10 |
+| Metric | 0 — Baseline | 1 — Backend | 2 — AI |
+|---|---|---|---|
+| Blocks analyzed (CC) | 26 | 110 | 125 |
+| Avg cyclomatic complexity | 1.35 | 2.46 | 2.55 |
+| Max cyclomatic complexity | 2 | 10 | 10 |
+| Avg maintainability index | 92.26 | 79.54 | 77.84 |
+| Min maintainability index | 51.35 | 3.49 | 4.40 |
+| Total LOC / SLOC | 471 / 321 | 1343 / 1061 | 1712 / 1338 |
+| Pylint findings | 55 | 266 | 288 |
+| Pylint score | 8.06/10 | 8.03/10 | 8.28/10 |
 
-_A new column is added for each completed milestone._
+_A new column is added for each completed milestone. The raw snapshot behind
+each column lives in `metrics/milestone-<n>-<name>/`._
 
 ## Metrics glossary
 
@@ -55,3 +56,26 @@ attendance features landed (PR #58). The backend roughly tripled in size
   candidate for splitting into smaller modules.
 - Pylint held roughly steady at **8.03/10** despite the 5x growth in findings,
   which scale with the added code.
+
+### Milestone 2 — AI features
+
+Backend after the two AI features landed: appointment document generation from
+audio (PR #62) and the specialty guidance chatbot (PR #65), plus the English
+cleanup of code artifacts (PR #66). Grew ~26% (1061 → 1338 SLOC).
+
+- Complexity essentially flat: average **2.55** (from 2.46) and the same peak
+  of **10**. The new code is mostly linear I/O and rendering, so it added
+  volume without adding branching.
+- Pylint **improved** to **8.28/10**. The new `ai.py` scores 10.00/10 on its
+  own and the English cleanup removed some long-line warnings, which more than
+  offset the extra findings that come with more code.
+- `views.py` remains the one real problem: **MI 4.40, rank C**, against 42.76
+  for the next worst file (`models.py`). It is now 641 SLOC and holds every
+  view in the project.
+
+⚠️ Read the min-MI improvement (3.49 → 4.40) with care: it is a **formula
+artifact, not a real gain**. Radon's MI rewards comment density, and `views.py`
+went from 0 to 4 comment lines in this milestone — enough to offset the ~95
+extra source lines. The file did not get easier to maintain; it got bigger.
+Splitting it into modules (booking, availability, attendance, chat) is the
+clear next refactor, and would be the honest way to move this number.
