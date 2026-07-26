@@ -21,6 +21,13 @@ def test_page_renders_for_patient(patient_client):
 
 
 @pytest.mark.django_db
+def test_page_links_back_to_booking(patient_client):
+    html = patient_client.get(reverse("specialty-chat")).content.decode()
+    assert "Voltar ao agendamento" in html
+    assert f'href="{reverse("index")}"' in html
+
+
+@pytest.mark.django_db
 def test_page_forbidden_for_doctor(doctor_client):
     assert doctor_client.get(reverse("specialty-chat")).status_code == 403
 
