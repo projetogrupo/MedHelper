@@ -5,7 +5,8 @@ Project for MAC0350 that serves as an auxiliary tool for medical professionals. 
 This section will describe AI usage throughout development.
 
 ## AI Usage Overview
-This section will describe AI usage throughout development.
+How generative AI was used during development, and the two features that use
+AI inside the product, are documented in [AI_Usage.md](AI_Usage.md).
 
 ## Running with Docker
 
