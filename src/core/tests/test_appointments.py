@@ -68,7 +68,7 @@ def test_update_appointment_invalid(client, appointment):
     )
     assert response.status_code == 422
     assert b"Checkup" in response.content
-    assert b"Invalid input" in response.content
+    assert "Entrada inválida".encode() in response.content
 
 
 @pytest.mark.django_db
