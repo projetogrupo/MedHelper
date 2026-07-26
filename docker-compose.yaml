@@ -7,22 +7,42 @@ services:
       - POSTGRES_DB=medhelper
       - POSTGRES_USER=medhelper
       - POSTGRES_PASSWORD=medhelper
+    # The web service waits on this, so migrate never runs against a Postgres
+    # that is still starting up.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medhelper -d medhelper"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
   web:
     build: .
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed_demo &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
+      # Keeps the transcription model (~150 MB) across container recreations.
+      - whisper_cache:/root/.cache/huggingface
     ports:
       - "8000:8000"
     environment:
+      # Values come from a local .env when present, otherwise these defaults
+      # let `docker compose up` work on a clean clone with no setup.
+      - SECRET_KEY=${SECRET_KEY:-insecure-key-for-local-docker-only}
+      - DEBUG=${DEBUG:-True}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      # Optional: without it the app runs normally, only the AI features are off.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - POSTGRES_DB=medhelper
       - POSTGRES_USER=medhelper
       - POSTGRES_PASSWORD=medhelper
       - POSTGRES_HOST=db
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  whisper_cache:

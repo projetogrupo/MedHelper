@@ -14,3 +14,7 @@ docker-compose.yaml
 *.md
 LICENSE
 ROADMAP.txt
+media/
+metrics/
+.github/
+.claude/

@@ -7,6 +7,70 @@ This section will describe AI usage throughout development.
 ## AI Usage Overview
 This section will describe AI usage throughout development.
 
+## Running with Docker
+
+From a clean clone, with Docker Desktop running:
+
+```bash
+docker compose up
+```
+
+Open http://localhost:8000. That is the whole setup — no virtualenv, no
+`.env`, no manual migration. The first build takes a few minutes; later starts
+are fast.
+
+The stack starts Postgres, waits until it accepts connections, applies the
+migrations, and seeds demo accounts. Log in with any of these
+(password `medhelper123`):
+
+| Account | Role |
+|---|---|
+| `admin@medhelper.local` | admin |
+| `cardio@medhelper.local` | doctor — Cardiologia |
+| `derma@medhelper.local` | doctor — Dermatologia |
+| `ana@medhelper.local` | patient |
+| `zeca@medhelper.local` | patient |
+
+Both doctors already have weekday availability, so a patient can book an
+appointment right away.
+
+Useful commands:
+
+```bash
+docker compose up --build     # rebuild after changing requirements.txt
+docker compose down           # stop (keeps the database)
+docker compose down -v        # stop and wipe the database and cached model
+docker compose exec web python manage.py createsuperuser
+docker compose exec web pytest
+```
+
+### Enabling the AI features under Docker
+
+The AI features need an Anthropic API key. Create a `.env` next to
+`docker-compose.yaml` with:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Compose picks it up automatically on the next `up`. Without the key everything
+else works normally; only those two features are disabled, with a message in
+the UI.
+
+### Running without Docker
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # then set SECRET_KEY
+python manage.py migrate
+python manage.py seed_demo    # optional: same demo accounts as above
+python manage.py runserver
+```
+
+This path uses SQLite; Postgres is only wired up in the Docker setup.
+
 ## Code Metrics
 Backend complexity and maintainability metrics (radon + pylint) are tracked
 per milestone in [docs/metrics.md](docs/metrics.md).
