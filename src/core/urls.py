@@ -32,6 +32,7 @@ urlpatterns = [
     path("consultas/<int:appointment_id>/atendimento/notas/", views.attendance_notes, name="attendance-notes"),
     path("consultas/<int:appointment_id>/atendimento/documentos/", views.attendance_doc_add, name="attendance-doc-add"),
     path("consultas/documentos/<int:document_id>/excluir/", views.attendance_doc_delete, name="attendance-doc-delete"),
+    path("consultas/<int:appointment_id>/atendimento/transcrever/", views.attendance_transcribe, name="attendance-transcribe"),
     path("consultas/<int:appointment_id>/atendimento/concluir/", views.attendance_complete, name="attendance-complete"),
     path("pacientes/<int:patient_id>/historico/", views.patient_history, name="patient-history"),
 ]
