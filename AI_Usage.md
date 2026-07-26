@@ -21,6 +21,9 @@ So far, AI assistance has primarily been used for:
   service, and the environment-variable-driven settings;
 * setting up the radon/pylint code-metrics tooling, the CI pipeline, and the
   per-milestone metrics documentation;
+* building the accounts, scheduling, and attendance features (custom user with
+  patient/doctor/admin roles, doctor availability, patient booking, and the
+  attendance flow with notes and documents), including their screens and tests;
 * implementing the appointment document generation feature described below;
 * general development support and debugging assistance.
 
