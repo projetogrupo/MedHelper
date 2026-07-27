@@ -1,9 +1,9 @@
-<p class="form-section-title" style="margin-top: 1rem">{{ date|date:"l, d/m/Y" }}</p>
+<p class="form-section-title mt-1">{{ date|date:"l, d/m/Y" }}</p>
 
 {% if groups %}
   {% for group in groups %}
     {% if show_doctor_names %}
-      <p style="margin: .5rem 0 .25rem; display: flex; align-items: center; gap: .5rem">
+      <p class="stack-sm mb-1">
         {% include "core/avatar.html" with person=group.doctor size="avatar--sm" %}
         <span><strong>{{ group.doctor }}</strong> — {{ group.doctor.specialty }}</span>
       </p>

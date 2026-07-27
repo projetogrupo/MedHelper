@@ -6,13 +6,13 @@
   <h1>Perfil</h1>
 </div>
 
-<div class="card" style="max-width: 32rem">
-  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem">
+<div class="card measure">
+  <div class="person-row mb-2">
     {% include "core/avatar.html" with size="avatar--lg" %}
     <div>
-      <p class="form-section-title" style="margin: 0">{{ person }}</p>
+      <p class="patient-name mb-0">{{ person }}</p>
       {% if person.specialty %}
-        <p style="color: var(--text-secondary); margin: 0">{{ person.specialty }}</p>
+        <p class="text-muted mb-0">{{ person.specialty }}</p>
       {% endif %}
     </div>
   </div>
@@ -26,7 +26,7 @@
         {{ field.errors }}
       </div>
     {% endfor %}
-    <div class="form-actions" style="margin-top: 1rem">
+    <div class="form-actions">
       <button type="submit" class="btn btn-primary">Salvar</button>
     </div>
   </form>

@@ -1,10 +1,8 @@
 <tr id="appointment-{{ appointment.id }}">
   <td>{{ appointment.patient|default:"(sem paciente)" }}</td>
-  <td class="nowrap">
-    {{ appointment.appointment_date|date:"d/m/Y" }}<br />
-    <small class="text-muted">
-      {{ appointment.appointment_date|time:"H:i" }}
-    </small>
+  <td class="nowrap cell-time">
+    <div class="cell-main">{{ appointment.appointment_date|date:"d/m/Y" }}</div>
+    <div class="cell-sub">{{ appointment.appointment_date|time:"H:i" }}</div>
   </td>
   <td>
     <span class="badge badge-{{ appointment.status }}">
@@ -16,7 +14,7 @@
   </td>
   <td>
     {% if appointment.is_startable %}
-      <form method="post" action="{% url 'appointment-start' appointment.id %}" style="display: inline">
+      <form method="post" action="{% url 'appointment-start' appointment.id %}">
         {% csrf_token %}
         <button type="submit" class="btn-sm btn btn-primary">Iniciar</button>
       </form>
@@ -29,7 +27,6 @@
     {% if appointment.is_overdue %}
       <button
         class="btn-sm btn btn-primary"
-       
         hx-post="{% url 'appointment-complete' appointment.id %}"
         hx-target="#appointment-{{ appointment.id }}"
         hx-swap="outerHTML"
@@ -42,7 +39,6 @@
     {% if appointment.is_cancellable %}
       <button
         class="btn-sm btn btn-secondary"
-       
         hx-post="{% url 'appointment-cancel' appointment.id %}"
         hx-target="#appointment-{{ appointment.id }}"
         hx-swap="outerHTML"

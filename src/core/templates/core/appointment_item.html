@@ -4,11 +4,9 @@
 
   <td>{{ appointment.doctor|default:"—" }}</td>
 
-  <td class="nowrap">
-    {{ appointment.appointment_date|date:"d/m/Y" }}<br />
-    <small class="text-muted">
-      {{ appointment.appointment_date|time:"H:i" }}
-    </small>
+  <td class="nowrap cell-time">
+    <div class="cell-main">{{ appointment.appointment_date|date:"d/m/Y" }}</div>
+    <div class="cell-sub">{{ appointment.appointment_date|time:"H:i" }}</div>
   </td>
 
   <td>{{ appointment.reason|default:"—"|truncatechars:60 }}</td>
@@ -23,12 +21,11 @@
   </td>
 
   <td>
-    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+    <div class="row-actions">
 
       {% if user.is_superuser %}
       <button
         class="btn-sm btn btn-ghost"
-       
         hx-get="{% url 'appointment-update' appointment.id %}"
         hx-target="#appointment-{{ appointment.id }}"
         hx-swap="outerHTML"
@@ -41,7 +38,6 @@
       {% if appointment.is_overdue %}
         <button
           class="btn-sm btn btn-primary"
-         
           hx-post="{% url 'appointment-complete' appointment.id %}"
           hx-target="#appointment-{{ appointment.id }}"
           hx-swap="outerHTML"
@@ -54,7 +50,6 @@
       {% if appointment.is_cancellable %}
         <button
           class="btn-sm btn btn-secondary"
-         
           hx-post="{% url 'appointment-cancel' appointment.id %}"
           hx-target="#appointment-{{ appointment.id }}"
           hx-swap="outerHTML"
@@ -68,7 +63,6 @@
       {% if user.is_superuser %}
       <button
         class="btn-sm btn btn-danger"
-       
         hx-delete="{% url 'appointment-delete' appointment.id %}"
         hx-target="#appointment-{{ appointment.id }}"
         hx-swap="outerHTML"

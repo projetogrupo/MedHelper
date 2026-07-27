@@ -1,17 +1,17 @@
 {% if history %}
   {% for item in history %}
     <div class="history-item">
-      <p style="margin: 0">
+      <p class="mb-0">
         <strong>{{ item.appointment_date|date:"d/m/Y H:i" }}</strong>
         — {{ item.doctor|default:"—" }}
         <span class="badge badge-{{ item.status }}">{{ item.get_status_display }}</span>
       </p>
       {% if show_all or item.doctor_id == viewer_doctor.id %}
         {% if item.notes %}
-          <p style="margin: .25rem 0; white-space: pre-line">{{ item.notes }}</p>
+          <p class="prewrap">{{ item.notes }}</p>
         {% endif %}
         {% if item.documents.all %}
-          <p style="margin: .25rem 0">
+          <p class="mb-0">
             {% for doc in item.documents.all %}
               <a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a>{% if not forloop.last %} · {% endif %}
             {% endfor %}

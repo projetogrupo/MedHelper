@@ -3,8 +3,13 @@
 
 {% block content %}
 <div class="page-header">
-  <h1>Consultas</h1>
-  <a href="{% url 'index' %}" class="btn btn-primary">+ Nova consulta</a>
+  <div>
+    <h1>Consultas</h1>
+    <p class="page-subtitle">
+      {{ appointments|length }} consulta{{ appointments|length|pluralize:"s" }} listada{{ appointments|length|pluralize:"s" }}
+    </p>
+  </div>
+  <a href="{% url 'index' %}" class="btn btn-primary">Nova consulta</a>
 </div>
 
 <div class="search-bar">
@@ -17,6 +22,7 @@
     hx-target="#appointment-table"
     hx-trigger="keyup changed delay:350ms, search"
     hx-select="#appointment-table"
+    hx-indicator="closest .search-bar"
     aria-label="Buscar consultas"
   />
 </div>
@@ -44,6 +50,7 @@
     </div>
   {% else %}
     <div class="empty-state">
+      <span class="empty-icon" aria-hidden="true">🗓</span>
       <strong>Nenhuma consulta encontrada.</strong>
       <p>
         {% if request.GET.q %}

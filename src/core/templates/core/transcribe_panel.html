@@ -1,0 +1,67 @@
+{% comment %}
+Resting state of the appointment-document panel: the document produced so
+far (if any) plus the upload form. Swapped in by the polling endpoint once a
+job finishes, so it must carry the #ai-panel id.
+{% endcomment %}
+<div id="ai-panel">
+  {% if panel_error %}
+    <p class="message message--error">{{ panel_error }}</p>
+  {% elif panel_success %}
+    <p class="message message--success">{{ panel_success }}</p>
+  {% endif %}
+
+  {% if appointment.transcript_pdf %}
+    <div class="doc-ready">
+      <span class="doc-icon" aria-hidden="true">PDF</span>
+      <div class="grow">
+        <a href="{{ appointment.transcript_pdf.url }}" target="_blank" class="cell-main">
+          Documento da consulta
+        </a>
+        {% if appointment.transcript_created_at %}
+          <div class="cell-sub">
+            gerado em {{ appointment.transcript_created_at|date:"d/m/Y H:i" }}
+          </div>
+        {% endif %}
+      </div>
+      <a href="{{ appointment.transcript_pdf.url }}" target="_blank"
+         class="btn btn-ghost btn-sm">Abrir</a>
+    </div>
+
+    {% if appointment.transcript %}
+      <details class="doc-preview">
+        <summary>Ver conteúdo</summary>
+        <p>{{ appointment.transcript }}</p>
+      </details>
+    {% endif %}
+
+    <hr class="divider" />
+  {% else %}
+    <p class="section-hint">
+      Envie o áudio do atendimento para gerar automaticamente o documento
+      estruturado da consulta.
+    </p>
+  {% endif %}
+
+  <form hx-post="{% url 'attendance-transcribe' appointment.id %}"
+        hx-target="#ai-panel"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        method="post"
+        action="{% url 'attendance-transcribe' appointment.id %}"
+        enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="audio" accept="audio/*" required
+           aria-label="Áudio do atendimento" />
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">
+        {% if appointment.transcript_pdf %}Gerar novamente{% else %}Gerar documento{% endif %}
+      </button>
+    </div>
+  </form>
+
+  <p class="text-muted text-sm mt-1 mb-0">
+    A transcrição é feita localmente; apenas o texto é enviado para o modelo
+    que estrutura a nota. Revise o documento antes de usá-lo clinicamente.
+  </p>
+</div>

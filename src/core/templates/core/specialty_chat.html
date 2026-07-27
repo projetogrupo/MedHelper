@@ -3,12 +3,15 @@
 
 {% block content %}
 <div class="page-header">
-  <h1>Qual especialista procurar?</h1>
+  <div>
+    <h1>Qual especialista procurar?</h1>
+    <p class="page-subtitle">Assistente de orientação — não faz diagnóstico.</p>
+  </div>
   <a href="{% url 'index' %}" class="btn btn-ghost">Voltar ao agendamento</a>
 </div>
 
-<div class="card" style="max-width: 44rem">
-  <p style="color: var(--text-secondary); margin-bottom: 1rem">
+<div class="card measure">
+  <p class="section-hint">
     Conte o que você está sentindo e o assistente indica a especialidade mais
     adequada. Ele não faz diagnóstico nem substitui uma consulta — e, em caso
     de emergência, procure um pronto-socorro ou ligue 192.
@@ -18,45 +21,60 @@
     {% include "core/specialty_chat_messages.html" %}
   </div>
 
-  <form hx-post="{% url 'specialty-chat-send' %}"
+  <form class="chat-form"
+        hx-post="{% url 'specialty-chat-send' %}"
         hx-target="#chat-messages"
         hx-swap="innerHTML"
         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-        hx-on::after-request="this.reset()"
-        style="display: flex; gap: .75rem; margin-top: 1rem">
+        hx-on::after-request="this.reset()">
     {% csrf_token %}
     <input type="text" name="message" maxlength="500" required
            placeholder="Descreva o que você está sentindo…"
            aria-label="Mensagem para o assistente"
-           autocomplete="off"
-           style="flex: 1" />
+           autocomplete="off" />
     <button type="submit" class="btn btn-primary">Enviar</button>
-    <span class="htmx-indicator" aria-live="polite"
-          style="color: var(--text-secondary); align-self: center">Pensando…</span>
   </form>
 
-  <form hx-post="{% url 'specialty-chat-reset' %}"
+  <form class="mt-1"
+        hx-post="{% url 'specialty-chat-reset' %}"
         hx-target="#chat-messages"
         hx-swap="innerHTML"
-        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-        style="margin-top: .5rem">
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% csrf_token %}
-    <button type="submit" class="btn btn-ghost"
-            style="padding: .25rem .75rem; font-size: .8rem">
-      Limpar conversa
-    </button>
+    <button type="submit" class="btn btn-ghost btn-sm">Limpar conversa</button>
   </form>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-const chatBox = document.getElementById('chat-messages');
-chatBox.scrollTop = chatBox.scrollHeight;
-document.body.addEventListener('htmx:afterSwap', (event) => {
-  if (event.target.id === 'chat-messages') {
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-});
+  const chatBox = document.getElementById('chat-messages');
+  const chatForm = document.querySelector('.chat-form');
+
+  function stickToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
+  stickToBottom();
+
+  // Echo the patient's own message and show a typing bubble right away:
+  // waiting on the model with nothing on screen reads as a broken page.
+  chatForm.addEventListener('htmx:beforeRequest', (event) => {
+    const field = chatForm.querySelector('input[name="message"]');
+    const text = field.value.trim();
+    if (!text) { return; }
+
+    const sent = document.createElement('div');
+    sent.className = 'chat-msg chat-msg--user';
+    sent.textContent = text;
+
+    const typing = document.createElement('div');
+    typing.className = 'chat-typing chat-typing--live';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+
+    chatBox.append(sent, typing);
+    stickToBottom();
+  });
+
+  document.body.addEventListener('htmx:afterSwap', (event) => {
+    if (event.target.id === 'chat-messages') { stickToBottom(); }
+  });
 </script>
 {% endblock %}
