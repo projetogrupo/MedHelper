@@ -1,0 +1,35 @@
+{% comment %}
+Page controls for a paginated appointment table.
+
+Expects `page` (a Django Page), `query` (the current search term, so paging
+does not drop it) and `target` (the id of the element to swap, without the #).
+Renders nothing when everything fits on one page.
+{% endcomment %}
+{% if page.paginator.num_pages > 1 %}
+  <nav class="pagination" aria-label="Paginação">
+    {% if page.has_previous %}
+      <a class="btn btn-ghost btn-sm"
+         href="?page={{ page.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+         hx-get="?page={{ page.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+         hx-target="#{{ target }}" hx-select="#{{ target }}" hx-swap="outerHTML"
+         hx-push-url="true">Anterior</a>
+    {% else %}
+      <span class="btn btn-ghost btn-sm" aria-disabled="true">Anterior</span>
+    {% endif %}
+
+    <span class="pagination-status">
+      Página {{ page.number }} de {{ page.paginator.num_pages }}
+      <span class="text-muted">· {{ page.paginator.count }} consulta{{ page.paginator.count|pluralize:"s" }}</span>
+    </span>
+
+    {% if page.has_next %}
+      <a class="btn btn-ghost btn-sm"
+         href="?page={{ page.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+         hx-get="?page={{ page.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}"
+         hx-target="#{{ target }}" hx-select="#{{ target }}" hx-swap="outerHTML"
+         hx-push-url="true">Próxima</a>
+    {% else %}
+      <span class="btn btn-ghost btn-sm" aria-disabled="true">Próxima</span>
+    {% endif %}
+  </nav>
+{% endif %}

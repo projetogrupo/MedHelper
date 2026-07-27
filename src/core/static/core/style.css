@@ -529,6 +529,27 @@ tbody tr:last-child td { border-bottom: none; }
   50%      { opacity: .45; transform: scale(.8); }
 }
 
+/* ── 10b. Pagination ────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+}
+.pagination-status {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+/* The ends of the range render as spans, not links: dimmed, not clickable. */
+.pagination [aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* ── 11. Search ─────────────────────────────────────────────── */
 .search-bar { position: relative; margin-bottom: var(--space-lg); max-width: 32rem; }
 .search-bar input {
