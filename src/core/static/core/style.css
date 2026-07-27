@@ -122,15 +122,6 @@ a:hover { text-decoration: underline; }
   animation: rise var(--transition-slow) both;
 }
 
-.site-footer {
-  text-align: center;
-  padding: var(--space-lg) var(--space-md);
-  color: var(--text-tertiary);
-  font-size: var(--text-sm);
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
@@ -147,7 +138,7 @@ a:hover { text-decoration: underline; }
   backdrop-filter: saturate(180%) blur(14px);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--border);
-  padding: .7rem var(--space-lg);
+  padding: 1.15rem var(--space-lg);
 }
 .header-inner {
   max-width: var(--max-width);
@@ -161,32 +152,32 @@ a:hover { text-decoration: underline; }
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: .6rem;
+  gap: .7rem;
   color: var(--blue-deep);
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  letter-spacing: -.02em;
+  letter-spacing: -.025em;
 }
 .logo:hover { text-decoration: none; }
 .logo-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-sm);
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: var(--radius-md);
   background: linear-gradient(140deg, var(--teal), var(--blue-deep));
   color: #fff;
-  font-size: 1.05rem;
+  font-size: 1.35rem;
   box-shadow: var(--shadow-sm);
 }
 
 .main-nav { display: flex; align-items: center; gap: var(--space-xs); }
 .main-nav a {
-  padding: .4rem .85rem;
+  padding: .5rem 1rem;
   border-radius: var(--radius-pill);
   color: var(--text-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
   font-weight: 550;
   transition: background-color var(--transition), color var(--transition);
 }
@@ -1038,9 +1029,9 @@ tbody tr:last-child td { border-bottom: none; }
 }
 .auth-head { text-align: center; margin-bottom: var(--space-lg); }
 .auth-head .logo-icon {
-  width: 2.75rem;
-  height: 2.75rem;
-  font-size: 1.4rem;
+  width: 3.25rem;
+  height: 3.25rem;
+  font-size: 1.7rem;
   margin-bottom: var(--space-sm);
 }
 .auth-head h1 { font-size: var(--text-xl); }
@@ -1072,8 +1063,11 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width: 640px) {
-  .site-header { padding: .6rem var(--space-md); }
-  .header-inner { flex-wrap: wrap; gap: .5rem; }
+  .site-header { padding: .8rem var(--space-md); }
+  .header-inner { flex-wrap: wrap; gap: .6rem; }
+  /* The full-size mark would eat the row on a phone. */
+  .logo { font-size: 1.3rem; }
+  .logo-icon { width: 2.2rem; height: 2.2rem; font-size: 1.15rem; }
   .main-nav {
     width: 100%;
     gap: .15rem;
@@ -1082,7 +1076,7 @@ tbody tr:last-child td { border-bottom: none; }
     padding-bottom: .15rem;
   }
   .main-nav::-webkit-scrollbar { display: none; }
-  .main-nav a { padding: .35rem .7rem; }
+  .main-nav a { padding: .35rem .75rem; font-size: var(--text-sm); }
   .nav-divider { display: none; }
 
   .site-main { padding: var(--space-md); }
