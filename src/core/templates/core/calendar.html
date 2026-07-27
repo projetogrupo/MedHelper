@@ -6,11 +6,11 @@
   <h1>Horários</h1>
 </div>
 
-<div class="card" style="margin-bottom: 1.5rem">
+<div class="mb-2 card">
   <p class="form-section-title">Duração da consulta</p>
-  <form method="post" action="{% url 'calendar-duration' %}"
+  <form class="stack-md" method="post" action="{% url 'calendar-duration' %}"
         onsubmit="return confirm('Alterar a duração remove horários que não se encaixam na nova grade. Continuar?')"
-        style="display: flex; gap: .75rem; align-items: center; flex-wrap: wrap">
+       >
     {% csrf_token %}
     <label for="id_duration">Minutos por consulta</label>
     <input id="id_duration" name="duration" type="number" min="5" max="240" step="5"

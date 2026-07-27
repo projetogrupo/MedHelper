@@ -1,7 +1,7 @@
 <p class="form-section-title" style="margin-top: 1rem">{{ date|date:"l, d/m/Y" }}</p>
 
 {% if override %}
-  <p style="color: var(--text-secondary)">
+  <p class="text-muted">
     Dia personalizado — os horários abaixo substituem a semana padrão.
   </p>
   <div class="day-grid">
@@ -18,7 +18,7 @@
     <button type="submit" class="btn btn-ghost">Remover personalização</button>
   </form>
 {% else %}
-  <p style="color: var(--text-secondary)">Este dia segue a semana padrão.</p>
+  <p class="text-muted">Este dia segue a semana padrão.</p>
   <div class="day-grid">
     {% for cell in cells %}
       <span class="day-slot day-slot--preview{% if cell.on %} slot-on{% endif %}">
