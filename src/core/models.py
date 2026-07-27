@@ -58,11 +58,42 @@ class Patient(models.Model):
 		return f"{self.first_name} {self.last_name}"
 
 
+class MedicalSpecialty(models.TextChoices):
+	"""Specialties a doctor can register under.
+
+	Ordered by how many specialists each holds in Brazil (CFM/AMB
+	Demografia Médica), so the likeliest choices sit at the top of the
+	dropdown instead of being buried in an alphabetical list. The stored
+	value is the label itself: the specialty name is what the booking
+	filter, the patient-facing screens and the guidance chatbot all read.
+	"""
+	CLINICA_MEDICA = 'Clínica Médica', 'Clínica Médica'
+	PEDIATRIA = 'Pediatria', 'Pediatria'
+	CIRURGIA_GERAL = 'Cirurgia Geral', 'Cirurgia Geral'
+	GINECOLOGIA_OBSTETRICIA = 'Ginecologia e Obstetrícia', 'Ginecologia e Obstetrícia'
+	ANESTESIOLOGIA = 'Anestesiologia', 'Anestesiologia'
+	CARDIOLOGIA = 'Cardiologia', 'Cardiologia'
+	ORTOPEDIA = 'Ortopedia e Traumatologia', 'Ortopedia e Traumatologia'
+	MEDICINA_TRABALHO = 'Medicina do Trabalho', 'Medicina do Trabalho'
+	OFTALMOLOGIA = 'Oftalmologia', 'Oftalmologia'
+	RADIOLOGIA = 'Radiologia e Diagnóstico por Imagem', 'Radiologia e Diagnóstico por Imagem'
+	DERMATOLOGIA = 'Dermatologia', 'Dermatologia'
+	PSIQUIATRIA = 'Psiquiatria', 'Psiquiatria'
+	MEDICINA_FAMILIA = 'Medicina de Família e Comunidade', 'Medicina de Família e Comunidade'
+	NEUROLOGIA = 'Neurologia', 'Neurologia'
+	UROLOGIA = 'Urologia', 'Urologia'
+	OTORRINOLARINGOLOGIA = 'Otorrinolaringologia', 'Otorrinolaringologia'
+	GASTROENTEROLOGIA = 'Gastroenterologia', 'Gastroenterologia'
+	ENDOCRINOLOGIA = 'Endocrinologia e Metabologia', 'Endocrinologia e Metabologia'
+	NEFROLOGIA = 'Nefrologia', 'Nefrologia'
+	PNEUMOLOGIA = 'Pneumologia', 'Pneumologia'
+
+
 class Doctor(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 	first_name = models.CharField(max_length=100)
 	last_name = models.CharField(max_length=100)
-	specialty = models.CharField(max_length=120)
+	specialty = models.CharField(max_length=120, choices=MedicalSpecialty.choices)
 	# make email unique for doctors (optional) and allow NULL so multiple empty values
 	email = models.EmailField(max_length=254, blank=True, null=True, unique=True)
 	phone = models.CharField(max_length=20, blank=True)

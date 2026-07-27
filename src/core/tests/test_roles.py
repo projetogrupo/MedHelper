@@ -13,7 +13,7 @@ from core.tests.dates import next_weekday
 def other_appointment(db):
     other_patient = Patient.objects.create(first_name="Zeca", last_name="Moura")
     other_doctor = Doctor.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     return Appointment.objects.create(

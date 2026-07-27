@@ -190,7 +190,7 @@ def test_admin_books_for_chosen_patient(admin_client, patient, monday_slots):
 @pytest.mark.django_db
 def test_patient_cannot_double_book_same_time(patient_client, patient, monday_slots):
     other_doctor = monday_slots.__class__.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     WeeklySlot.objects.create(doctor=other_doctor, weekday=0, start_time=datetime.time(8, 0))
