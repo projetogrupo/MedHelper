@@ -6,6 +6,11 @@
 #
 # Usage: ./scripts/metrics.sh [checkpoint-name]
 # Defaults to the current git ref (branch or tag) as the checkpoint name.
+#
+# Milestone snapshots follow the naming convention milestone-<n>-<name>, e.g.
+#   ./scripts/metrics.sh milestone-3-deploy
+# Run it from an up-to-date main, after the milestone's PRs are merged, then
+# add a column to docs/metrics.md and commit metrics/milestone-<n>-<name>/.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
