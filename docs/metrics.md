@@ -7,16 +7,16 @@ maintainability, size) and [pylint](https://pylint.readthedocs.io/) over
 
 ## Progression
 
-| Metric | 0 — Baseline | 1 — Backend | 2 — AI |
-|---|---|---|---|
-| Blocks analyzed (CC) | 26 | 110 | 125 |
-| Avg cyclomatic complexity | 1.35 | 2.46 | 2.55 |
-| Max cyclomatic complexity | 2 | 10 | 10 |
-| Avg maintainability index | 92.26 | 79.54 | 77.84 |
-| Min maintainability index | 51.35 | 3.49 | 4.40 |
-| Total LOC / SLOC | 471 / 321 | 1343 / 1061 | 1712 / 1338 |
-| Pylint findings | 55 | 266 | 288 |
-| Pylint score | 8.06/10 | 8.03/10 | 8.28/10 |
+| Metric | 0 — Baseline | 1 — Backend | 2 — AI | 3 — Infra |
+|---|---|---|---|---|
+| Blocks analyzed (CC) | 26 | 110 | 125 | 130 |
+| Avg cyclomatic complexity | 1.35 | 2.46 | 2.55 | 2.72 |
+| Max cyclomatic complexity | 2 | 10 | 10 | 12 |
+| Avg maintainability index | 92.26 | 79.54 | 77.84 | 80.12 |
+| Min maintainability index | 51.35 | 3.49 | 4.40 | 4.40 |
+| Total LOC / SLOC | 471 / 321 | 1343 / 1061 | 1712 / 1338 | 1796 / 1401 |
+| Pylint findings | 55 | 266 | 288 | 289 |
+| Pylint score | 8.06/10 | 8.03/10 | 8.28/10 | 8.34/10 |
 
 _A new column is added for each completed milestone. The raw snapshot behind
 each column lives in `metrics/milestone-<n>-<name>/`._
@@ -79,3 +79,29 @@ went from 0 to 4 comment lines in this milestone — enough to offset the ~95
 extra source lines. The file did not get easier to maintain; it got bigger.
 Splitting it into modules (booking, availability, attendance, chat) is the
 clear next refactor, and would be the honest way to move this number.
+
+### Milestone 3 — Setup & Infrastructure
+
+Backend after the infrastructure milestone closed: `docker compose up` works
+from a clean clone, with a Postgres healthcheck, environment defaults, a
+slimmer image, and the `seed_demo` command that makes a fresh install usable
+(PR #70). Grew ~5% (1338 → 1401 SLOC) — the smallest milestone so far, since
+most of the work landed in `Dockerfile`, `docker-compose.yaml` and the README,
+which radon and pylint do not measure.
+
+- **Max complexity rose 10 → 12**, and for the first time the peak is *not* in
+  `views.py`: it is `seed_demo.Command.handle` (rank C). The command loops over
+  doctors and over weekday/time pairs to build the availability grid, and
+  guards each step so a second run changes nothing. The complexity buys
+  idempotence, which the Docker entrypoint depends on — it runs `seed_demo` on
+  every container start.
+- Pylint edged up to **8.34/10**.
+- `views.py` is unchanged at **MI 4.40**, still an order of magnitude worse
+  than the next file (`models.py`, 42.76). This milestone did not touch it.
+
+⚠️ The average MI *rose* (77.84 → 80.12), which looks like the codebase got
+more maintainable. It did not. Radon averages per file, and this milestone
+added one small, well-documented file — `seed_demo.py` at **69.93** — which
+pulls the mean up without improving a single existing file. Read the **minimum**
+MI, not the average, when asking whether the worst code got better: it sat
+still at 4.40, and it is the number that matters.
