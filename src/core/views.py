@@ -13,6 +13,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
@@ -461,35 +462,58 @@ def specialty_chat_reset(request):
     return render(request, "core/specialty_chat_messages.html", {"history": []})
 
 
+PAGE_SIZE = 20
+
+
+def _by_patient_name(appointments, query):
+    if not query:
+        return appointments
+    return appointments.filter(
+        Q(patient__first_name__icontains=query)
+        | Q(patient__last_name__icontains=query)
+    )
+
+
+def _page(request, appointments):
+    """Slice the list for display.
+
+    select_related matters more than it looks: every row renders the patient
+    and the doctor, and without it each one costs its own query — 64
+    appointments used to take 133 queries instead of 5.
+    """
+    paginator = Paginator(appointments.select_related("patient", "doctor"), PAGE_SIZE)
+    return paginator.get_page(request.GET.get("page"))
+
+
 @login_required
 @require_http_methods(["GET"])
 def list_appointments(request):
     query = request.GET.get("q", "").strip()
     role = role_of(request.user)
     if role == "patient":
-        own = Appointment.objects.filter(patient=request.user.patient)
+        own = Appointment.objects.filter(
+            patient=request.user.patient
+        ).select_related("doctor")
         now = timezone.now()
         return render(request, "core/patient_appointments.html", {
             "upcoming": own.filter(appointment_date__gte=now).order_by("appointment_date"),
             "past": own.filter(appointment_date__lt=now).order_by("-appointment_date"),
         })
     if role == "doctor":
-        appointments = Appointment.objects.filter(doctor=request.user.doctor)
-        if query:
-            appointments = appointments.filter(
-                Q(patient__first_name__icontains=query)
-                | Q(patient__last_name__icontains=query)
-            )
+        appointments = _by_patient_name(
+            Appointment.objects.filter(doctor=request.user.doctor), query
+        ).order_by("appointment_date")
         return render(request, "core/doctor_agenda.html", {
-            "appointments": appointments.order_by("appointment_date"),
+            "appointments": _page(request, appointments),
+            "query": query,
         })
-    appointments = Appointment.objects.all()
-    if query:
-        appointments = appointments.filter(
-            Q(patient__first_name__icontains=query)
-            | Q(patient__last_name__icontains=query)
-        )
-    return render(request, "core/appointment_list.html", {"appointments": appointments})
+    appointments = _by_patient_name(
+        Appointment.objects.all(), query
+    ).order_by("appointment_date")
+    return render(request, "core/appointment_list.html", {
+        "appointments": _page(request, appointments),
+        "query": query,
+    })
 
 
 @login_required

@@ -6,7 +6,7 @@
   <div>
     <h1>Consultas</h1>
     <p class="page-subtitle">
-      {{ appointments|length }} consulta{{ appointments|length|pluralize:"s" }} listada{{ appointments|length|pluralize:"s" }}
+      {{ appointments.paginator.count }} consulta{{ appointments.paginator.count|pluralize:"s" }} no total
     </p>
   </div>
   <a href="{% url 'index' %}" class="btn btn-primary">Nova consulta</a>
@@ -48,6 +48,7 @@
         </tbody>
       </table>
     </div>
+    {% include "core/pagination.html" with page=appointments target="appointment-table" %}
   {% else %}
     <div class="empty-state">
       <span class="empty-icon" aria-hidden="true">🗓</span>
