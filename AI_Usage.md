@@ -24,7 +24,13 @@ So far, AI assistance has primarily been used for:
 * building the accounts, scheduling, and attendance features (custom user with
   patient/doctor/admin roles, doctor availability, patient booking, and the
   attendance flow with notes and documents), including their screens and tests;
-* implementing the appointment document generation feature described below;
+* implementing the two AI features described below (appointment document
+  generation and the specialty guidance chatbot), including their prompts,
+  screens and tests;
+* fixing the Docker setup so the stack runs from a clean clone: passing the
+  required environment through compose, adding a Postgres healthcheck, writing
+  the `seed_demo` command, and slimming the image;
+* translating code artifacts (URL paths, comments, docstrings) to English;
 * general development support and debugging assistance.
 
 ## AI Inside the Product
