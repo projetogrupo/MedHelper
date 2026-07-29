@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import Appointment, Doctor, Patient, User
+from .models import Appointment, Doctor, MedicalSpecialty, Patient, User
 
 
 class EmailSignupForm(UserCreationForm):
@@ -44,7 +44,10 @@ class PatientSignupForm(EmailSignupForm):
 class DoctorSignupForm(EmailSignupForm):
     first_name = forms.CharField(max_length=100, label="Nome")
     last_name = forms.CharField(max_length=100, label="Sobrenome")
-    specialty = forms.CharField(max_length=120, label="Especialidade")
+    specialty = forms.ChoiceField(
+        choices=[("", "Selecione…")] + MedicalSpecialty.choices,
+        label="Especialidade",
+    )
     crm_number = forms.CharField(max_length=50, required=False, label="CRM")
     phone = forms.CharField(max_length=20, required=False, label="Telefone")
 

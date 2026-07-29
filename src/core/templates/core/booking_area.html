@@ -41,10 +41,10 @@
       {% include "core/avatar.html" with person=preview_doctor size="avatar--md" %}
       <div>
         <strong>{{ preview_doctor }}</strong>
-        <p style="margin: 0; color: var(--text-secondary)">
+        <p class="text-muted mb-0">
           {{ preview_doctor.specialty }}{% if preview_doctor.crm_number %} · {{ preview_doctor.crm_number }}{% endif %}
         </p>
-        <p style="margin: 0; color: var(--text-secondary); font-size: .85rem">
+        <p class="text-muted text-sm mb-0">
           Consultas de {{ preview_doctor.appointment_duration }} minutos
         </p>
       </div>
@@ -95,11 +95,11 @@
         </tbody>
       </table>
     </div>
-    <p style="color: var(--text-secondary); font-size: .85rem">
+    <p class="text-muted text-sm">
       Os dias em destaque têm horários livres — clique em um dia para escolher.
     </p>
   {% else %}
-    <p style="color: var(--text-secondary)">
+    <p class="text-muted">
       Escolha uma especialidade ou um médico para ver os dias disponíveis.
     </p>
   {% endif %}

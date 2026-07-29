@@ -38,14 +38,14 @@ def test_doctor_profile_edits_specialty(doctor_client, doctor):
         {
             "first_name": "Bruno",
             "last_name": "Costa",
-            "specialty": "Geriatria",
+            "specialty": "Neurologia",
             "crm_number": "CRM-0001",
             "email": "bruno@example.com",
         },
     )
     doctor.refresh_from_db()
     assert response.status_code == 302
-    assert doctor.specialty == "Geriatria"
+    assert doctor.specialty == "Neurologia"
 
 
 @pytest.mark.django_db

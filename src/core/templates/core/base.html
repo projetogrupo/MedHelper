@@ -1,15 +1,24 @@
-{% load static %}
+{% load static versioned_static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}MedHelper{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'core/style.css' %}" />
+  <meta name="theme-color" content="#0f9480" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Falls back to the system stack when offline (e.g. Docker without
+       internet); nothing else depends on it loading. -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="{% static_v 'core/style.css' %}" />
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
+
+<div id="top-progress" aria-hidden="true"></div>
 
 <header class="site-header">
   <div class="header-inner">
@@ -47,9 +56,10 @@
             Perfil
           </a>
         {% endif %}
-        <form method="post" action="{% url 'logout' %}" style="display: inline">
+        <span class="nav-divider" aria-hidden="true"></span>
+        <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-ghost" style="padding: .25rem .75rem">Sair</button>
+          <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
         </form>
       {% endif %}
     </nav>
@@ -68,9 +78,43 @@
   {% block content %}{% endblock %}
 </main>
 
-<footer class="site-footer">
-  <p>MedHelper &mdash; MAC0350</p>
-</footer>
+<script>
+  // Site-wide loading bar: every htmx request reports progress the way a
+  // full page load would, so no interaction ever looks frozen.
+  (function () {
+    const bar = document.getElementById('top-progress');
+    let pending = 0;
+    // Elements marked data-quiet poll on a timer and show their own
+    // progress; flashing the top bar for them would be constant noise.
+    function quiet(event) {
+      return event.target.closest && event.target.closest('[data-quiet]');
+    }
+    document.body.addEventListener('htmx:beforeRequest', function (event) {
+      if (quiet(event)) { return; }
+      if (pending++ === 0) { bar.className = 'loading'; }
+    });
+    function settle(event) {
+      if (quiet(event) || pending === 0) { return; }
+      if (--pending > 0) { return; }
+      bar.className = 'done';
+      setTimeout(function () { bar.className = ''; }, 240);
+    }
+    document.body.addEventListener('htmx:afterRequest', settle);
+    document.body.addEventListener('htmx:sendError', settle);
+  })();
+
+  // Success and info toasts are confirmations, not content: fade them out
+  // on their own. Errors and warnings stay until the page changes.
+  setTimeout(function () {
+    document.querySelectorAll('.message--success, .message--info')
+      .forEach(function (el) {
+        el.style.transition = 'opacity .4s, transform .4s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(function () { el.remove(); }, 400);
+      });
+  }, 5000);
+</script>
 
 {% block extra_scripts %}{% endblock %}
 </body>

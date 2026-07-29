@@ -6,13 +6,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import Appointment, Doctor, Patient, WeeklySlot
+from core.tests.dates import next_weekday
 
 
 @pytest.fixture
 def other_appointment(db):
     other_patient = Patient.objects.create(first_name="Zeca", last_name="Moura")
     other_doctor = Doctor.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     return Appointment.objects.create(
@@ -78,7 +79,7 @@ def test_patient_books_only_for_self(patient_client, patient, doctor, other_appo
         {
             "patient": other_appointment.patient.id,
             "doctor": doctor.id,
-            "date": "2026-07-27",
+            "date": next_weekday(0).isoformat(),
             "time": "10:00",
         },
     )

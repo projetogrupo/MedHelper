@@ -9,7 +9,7 @@
 
 <p class="form-section-title">Próximas</p>
 {% if upcoming %}
-  <div class="table-wrapper" style="margin-bottom: 1.5rem">
+  <div class="mb-2 table-wrapper">
     <table>
       <thead>
         <tr>
@@ -28,7 +28,7 @@
     </table>
   </div>
 {% else %}
-  <div class="empty-state" style="margin-bottom: 1.5rem">
+  <div class="mb-2 empty-state">
     <strong>Nenhuma consulta marcada.</strong>
     <p><a href="{% url 'index' %}">Agende a sua primeira consulta.</a></p>
   </div>

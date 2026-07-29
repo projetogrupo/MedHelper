@@ -61,7 +61,7 @@ def test_patient_cannot_start(patient_client, today_appointment):
 def test_other_doctor_cannot_start(today_appointment):
     from core.models import Doctor
     other = Doctor.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     user = User.objects.create_user("rita@example.com", password="x")
@@ -178,7 +178,7 @@ def test_patient_history_page_for_attending_doctor(doctor_client, open_appointme
 def test_patient_history_forbidden_for_unrelated_doctor(patient):
     from core.models import Doctor
     other = Doctor.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     user = User.objects.create_user("rita@example.com", password="x")
@@ -214,7 +214,7 @@ def test_attendance_links_to_full_history(doctor_client, open_appointment, patie
 def other_doctors_visit(patient):
     from core.models import Doctor
     other = Doctor.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     return Appointment.objects.create(

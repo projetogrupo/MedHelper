@@ -1,0 +1,38 @@
+{% comment %}
+Running state of the appointment-document panel. Polls itself and replaces
+itself; the resting panel comes back when the job finishes or fails.
+
+data-quiet keeps the site-wide top loading bar out of it — this panel has a
+progress indicator of its own and the poll fires every second.
+{% endcomment %}
+<div id="ai-panel"
+     data-quiet
+     hx-get="{% url 'attendance-transcribe-status' appointment.id job_id %}"
+     hx-trigger="every 900ms"
+     hx-swap="outerHTML">
+
+  <div class="progress" role="status" aria-live="polite">
+    <div class="progress-head">
+      <span class="progress-label">{{ label }}</span>
+      <span class="progress-pct">{{ percent }}%</span>
+    </div>
+
+    <div class="progress-track"
+         role="progressbar"
+         aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-fill" style="width: {{ percent }}%"></div>
+    </div>
+
+    <ul class="progress-steps">
+      {% for step in steps %}
+        <li class="progress-step{% if step.state %} progress-step--{{ step.state }}{% endif %}">
+          {{ step.label }}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <p class="text-muted text-sm mb-0">
+      Pode fechar e voltar depois — a geração continua no servidor.
+    </p>
+  </div>
+</div>

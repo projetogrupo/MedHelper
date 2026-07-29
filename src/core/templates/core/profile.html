@@ -6,29 +6,70 @@
   <h1>Perfil</h1>
 </div>
 
-<div class="card" style="max-width: 32rem">
-  <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem">
-    {% include "core/avatar.html" with size="avatar--lg" %}
-    <div>
-      <p class="form-section-title" style="margin: 0">{{ person }}</p>
-      {% if person.specialty %}
-        <p style="color: var(--text-secondary); margin: 0">{{ person.specialty }}</p>
-      {% endif %}
-    </div>
-  </div>
-
+<div class="card measure">
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% for field in form %}
-      <div class="form-group">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {{ field.errors }}
+
+    {% comment %}
+    The photo control is the avatar itself: the circle is the label for the
+    file input, which is hidden but still submitted with the form.
+    {% endcomment %}
+    <div class="person-row mb-2">
+      <label class="avatar-edit" for="{{ form.photo.id_for_label }}">
+        <span id="avatar-preview">
+          {% include "core/avatar.html" with size="avatar--lg" %}
+        </span>
+        <span class="avatar-edit__overlay" aria-hidden="true">Alterar</span>
+      </label>
+      <div>
+        <p class="patient-name mb-0">{{ person }}</p>
+        {% if person.specialty %}
+          <p class="text-muted mb-0">{{ person.specialty }}</p>
+        {% endif %}
+        <p class="text-muted text-xs mb-0">Clique na foto para trocar</p>
+        {{ form.photo.errors }}
       </div>
+    </div>
+    <div class="sr-only">{{ form.photo }}</div>
+
+    {% for field in form %}
+      {% if field.name != "photo" %}
+        <div class="form-group mb-1">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endif %}
     {% endfor %}
-    <div class="form-actions" style="margin-top: 1rem">
+
+    <div class="form-actions">
       <button type="submit" class="btn btn-primary">Salvar</button>
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Show the chosen file in the circle straight away — otherwise picking a
+  // photo gives no feedback at all until the form round-trips.
+  (function () {
+    const input = document.getElementById('{{ form.photo.id_for_label }}');
+    const holder = document.getElementById('avatar-preview');
+    if (!input || !holder) { return; }
+
+    input.addEventListener('change', function () {
+      const file = input.files && input.files[0];
+      if (!file) { return; }
+      const image = document.createElement('img');
+      image.className = 'avatar avatar--lg';
+      image.alt = 'Nova foto de perfil';
+      image.src = URL.createObjectURL(file);
+      image.addEventListener('load', function () {
+        URL.revokeObjectURL(image.src);
+      });
+      holder.replaceChildren(image);
+    });
+  })();
+</script>
 {% endblock %}

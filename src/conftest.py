@@ -51,7 +51,7 @@ def doctor(db):
     return Doctor.objects.create(
         first_name="Bruno",
         last_name="Costa",
-        specialty="Cardiology",
+        specialty="Cardiologia",
         email="bruno@example.com",
         crm_number="CRM-0001",
     )

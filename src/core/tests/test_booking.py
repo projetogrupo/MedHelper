@@ -5,8 +5,17 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import Appointment, Patient, WeeklySlot
+from core.tests.dates import next_weekday
 
-MONDAY = datetime.date(2026, 7, 27)
+MONDAY = next_weekday(0)
+MONDAY_ISO = MONDAY.isoformat()
+# The calendar screens are asked for the month MONDAY falls in, which is
+# not always the current one.
+MONDAY_MONTH = {"year": MONDAY.year, "month": MONDAY.month}
+MONTH_NAMES_PT = (
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+)
 
 
 @pytest.fixture
@@ -26,7 +35,7 @@ def book(doctor, when, **kwargs):
 
 @pytest.mark.django_db
 def test_available_slots_excludes_taken(monday_slots, patient):
-    book(monday_slots, datetime.datetime(2026, 7, 27, 8, 0), patient=patient)
+    book(monday_slots, datetime.datetime.combine(MONDAY, datetime.time(8, 0)), patient=patient)
     assert monday_slots.available_slots(MONDAY) == [datetime.time(8, 30)]
 
 
@@ -34,7 +43,7 @@ def test_available_slots_excludes_taken(monday_slots, patient):
 def test_cancelled_appointment_frees_slot(monday_slots, patient):
     book(
         monday_slots,
-        datetime.datetime(2026, 7, 27, 8, 0),
+        datetime.datetime.combine(MONDAY, datetime.time(8, 0)),
         patient=patient,
         status=Appointment.STATUS_CANCELLED,
     )
@@ -48,19 +57,19 @@ def test_cancelled_appointment_frees_slot(monday_slots, patient):
 def test_calendar_marks_days_with_free_slots(patient_client, monday_slots):
     response = patient_client.get(
         reverse("booking-panel"),
-        {"doctor": monday_slots.id, "year": 2026, "month": 7},
+        {"doctor": monday_slots.id, **MONDAY_MONTH},
     )
     assert response.status_code == 200
     html = response.content.decode()
     assert "day-avail" in html
-    assert "Julho" in html
+    assert MONTH_NAMES_PT[MONDAY.month - 1] in html
 
 
 @pytest.mark.django_db
 def test_calendar_by_specialty_without_doctor(patient_client, monday_slots):
     response = patient_client.get(
         reverse("booking-panel"),
-        {"specialty": monday_slots.specialty, "year": 2026, "month": 7},
+        {"specialty": monday_slots.specialty, **MONDAY_MONTH},
     )
     assert "day-avail" in response.content.decode()
 
@@ -68,7 +77,7 @@ def test_calendar_by_specialty_without_doctor(patient_client, monday_slots):
 @pytest.mark.django_db
 def test_calendar_empty_without_filters(patient_client, monday_slots):
     response = patient_client.get(
-        reverse("booking-panel"), {"year": 2026, "month": 7}
+        reverse("booking-panel"), MONDAY_MONTH
     )
     assert "day-avail" not in response.content.decode()
 
@@ -76,7 +85,7 @@ def test_calendar_empty_without_filters(patient_client, monday_slots):
 @pytest.mark.django_db
 def test_day_panel_specific_doctor_lists_chips(patient_client, monday_slots):
     response = patient_client.get(
-        reverse("booking-day"), {"doctor": monday_slots.id, "date": "2026-07-27"}
+        reverse("booking-day"), {"doctor": monday_slots.id, "date": MONDAY_ISO}
     )
     assert response.status_code == 200
     html = response.content.decode()
@@ -93,7 +102,7 @@ def test_day_panel_specialty_groups_by_doctor(patient_client, monday_slots):
     WeeklySlot.objects.create(doctor=other, weekday=0, start_time=datetime.time(9, 0))
     response = patient_client.get(
         reverse("booking-day"),
-        {"specialty": monday_slots.specialty, "date": "2026-07-27"},
+        {"specialty": monday_slots.specialty, "date": MONDAY_ISO},
     )
     html = response.content.decode()
     assert "Bruno Costa" in html
@@ -115,7 +124,7 @@ def test_create_accepts_combined_slot_value(patient_client, patient, monday_slot
         reverse("appointment-create"),
         {
             "slot": f"{monday_slots.id}|08:00",
-            "date": "2026-07-27",
+            "date": MONDAY_ISO,
             "reason": "Rotina",
         },
     )
@@ -131,7 +140,7 @@ def test_patient_books_free_slot(patient_client, patient, monday_slots):
         reverse("appointment-create"),
         {
             "doctor": monday_slots.id,
-            "date": "2026-07-27",
+            "date": MONDAY_ISO,
             "time": "08:00",
             "reason": "Rotina",
         },
@@ -144,10 +153,10 @@ def test_patient_books_free_slot(patient_client, patient, monday_slots):
 
 @pytest.mark.django_db
 def test_booking_taken_slot_rejected(patient_client, patient, monday_slots):
-    book(monday_slots, datetime.datetime(2026, 7, 27, 8, 0), patient=patient)
+    book(monday_slots, datetime.datetime.combine(MONDAY, datetime.time(8, 0)), patient=patient)
     response = patient_client.post(
         reverse("appointment-create"),
-        {"doctor": monday_slots.id, "date": "2026-07-27", "time": "08:00"},
+        {"doctor": monday_slots.id, "date": MONDAY_ISO, "time": "08:00"},
     )
     assert response.status_code == 422
     assert Appointment.objects.count() == 1
@@ -157,7 +166,7 @@ def test_booking_taken_slot_rejected(patient_client, patient, monday_slots):
 def test_booking_outside_availability_rejected(patient_client, monday_slots):
     response = patient_client.post(
         reverse("appointment-create"),
-        {"doctor": monday_slots.id, "date": "2026-07-27", "time": "12:00"},
+        {"doctor": monday_slots.id, "date": MONDAY_ISO, "time": "12:00"},
     )
     assert response.status_code == 422
     assert not Appointment.objects.exists()
@@ -170,7 +179,7 @@ def test_admin_books_for_chosen_patient(admin_client, patient, monday_slots):
         {
             "patient": patient.id,
             "doctor": monday_slots.id,
-            "date": "2026-07-27",
+            "date": MONDAY_ISO,
             "time": "08:30",
         },
     )
@@ -181,14 +190,14 @@ def test_admin_books_for_chosen_patient(admin_client, patient, monday_slots):
 @pytest.mark.django_db
 def test_patient_cannot_double_book_same_time(patient_client, patient, monday_slots):
     other_doctor = monday_slots.__class__.objects.create(
-        first_name="Rita", last_name="Nunes", specialty="Ortopedia",
+        first_name="Rita", last_name="Nunes", specialty="Ortopedia e Traumatologia",
         email="rita@example.com", crm_number="CRM-9999",
     )
     WeeklySlot.objects.create(doctor=other_doctor, weekday=0, start_time=datetime.time(8, 0))
-    book(other_doctor, datetime.datetime(2026, 7, 27, 8, 0), patient=patient)
+    book(other_doctor, datetime.datetime.combine(MONDAY, datetime.time(8, 0)), patient=patient)
     response = patient_client.post(
         reverse("appointment-create"),
-        {"doctor": monday_slots.id, "date": "2026-07-27", "time": "08:00"},
+        {"doctor": monday_slots.id, "date": MONDAY_ISO, "time": "08:00"},
     )
     assert response.status_code == 422
     assert Appointment.objects.count() == 1
@@ -209,7 +218,7 @@ def test_booking_past_date_rejected(patient_client, doctor):
 def test_booking_error_names_missing_field(patient_client, monday_slots):
     response = patient_client.post(
         reverse("appointment-create"),
-        {"doctor": monday_slots.id, "date": "2026-07-27"},
+        {"doctor": monday_slots.id, "date": MONDAY_ISO},
     )
     assert response.status_code == 422
     assert "Horário" in response.content.decode()

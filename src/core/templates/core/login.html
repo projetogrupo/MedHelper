@@ -2,8 +2,12 @@
 {% block title %}Entrar — MedHelper{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 24rem; margin: 2rem auto">
-  <p class="form-section-title">Entrar</p>
+<div class="auth-card card">
+  <div class="auth-head">
+    <span class="logo-icon" aria-hidden="true">✚</span>
+    <h1>Entrar</h1>
+    <p class="page-subtitle">Acesse sua agenda e suas consultas.</p>
+  </div>
 
   {% if form.errors %}
     <p class="message message--error">Usuário ou senha inválidos.</p>
@@ -11,7 +15,7 @@
 
   <form method="post">
     {% csrf_token %}
-    <div class="form-group">
+    <div class="form-group mb-1">
       <label for="id_username">E-mail</label>
       {{ form.username }}
     </div>
@@ -20,12 +24,12 @@
       {{ form.password }}
     </div>
     <input type="hidden" name="next" value="{{ next }}" />
-    <div class="form-actions" style="margin-top: 1rem">
-      <button type="submit" class="btn btn-primary">Entrar</button>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Entrar</button>
     </div>
   </form>
 
-  <p style="margin-top: 1rem">
+  <p class="text-sm text-muted mt-1 mb-0">
     Não tem conta? <a href="{% url 'signup' %}">Criar conta</a>
   </p>
 </div>

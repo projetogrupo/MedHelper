@@ -36,6 +36,7 @@ urlpatterns = [
     path("appointments/<int:appointment_id>/attendance/documents/", views.attendance_doc_add, name="attendance-doc-add"),
     path("appointments/documents/<int:document_id>/delete/", views.attendance_doc_delete, name="attendance-doc-delete"),
     path("appointments/<int:appointment_id>/attendance/transcribe/", views.attendance_transcribe, name="attendance-transcribe"),
+    path("appointments/<int:appointment_id>/attendance/transcribe/<str:job_id>/", views.attendance_transcribe_status, name="attendance-transcribe-status"),
     path("appointments/<int:appointment_id>/attendance/complete/", views.attendance_complete, name="attendance-complete"),
     path("patients/<int:patient_id>/history/", views.patient_history, name="patient-history"),
 ]

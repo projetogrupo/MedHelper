@@ -2,6 +2,8 @@ import datetime
 import os
 import pathlib
 import tempfile
+import threading
+import uuid
 from calendar import Calendar as MonthGrid
 
 from django.utils import timezone
@@ -9,7 +11,9 @@ from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.files.base import ContentFile
+from django.db import connection
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
@@ -624,48 +628,197 @@ def attendance_doc_add(request, appointment_id):
     return redirect("attendance", appointment_id=appointment.id)
 
 
-@login_required
-@require_http_methods(["POST"])
-def attendance_transcribe(request, appointment_id):
-    """Generate the appointment document from an audio recording."""
-    appointment = own_attendance(request, appointment_id)
-    if appointment is None:
-        return HttpResponse(status=403)
-    uploaded = request.FILES.get("audio")
-    if uploaded is None:
-        messages.error(request, "Selecione um arquivo de áudio.")
-        return redirect("attendance", appointment_id=appointment.id)
+# ── Appointment document generation ──────────────────────────────────────
+# Generating the document takes from seconds to minutes, so the browser is
+# not made to wait on it: the work runs in a thread and the page polls the
+# job for a real percentage. Progress lives in the default cache, which is
+# per-process — fine under runserver (one process, many threads), and the
+# only consequence of losing it is that the panel falls back to its resting
+# state while the document still finishes saving.
 
+DOCUMENT_JOB_TTL = 15 * 60
+DOCUMENT_STEPS = (
+    ("transcribing", "Transcrevendo o áudio localmente"),
+    ("structuring", "Estruturando a nota clínica"),
+    ("rendering", "Gerando o PDF"),
+)
+# Transcription dominates the wall time, so it owns most of the bar.
+TRANSCRIBE_SHARE = 65
+TRANSCRIBE_START = 5
+
+
+def _job_key(job_id):
+    return f"document-job:{job_id}"
+
+
+def _set_job(job_id, **fields):
+    state = cache.get(_job_key(job_id)) or {}
+    state.update(fields)
+    cache.set(_job_key(job_id), state, DOCUMENT_JOB_TTL)
+    return state
+
+
+def _save_upload_to_temp(uploaded):
     suffix = pathlib.Path(uploaded.name).suffix or ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         for chunk in uploaded.chunks():
             tmp.write(chunk)
-        audio_path = tmp.name
+        return tmp.name
 
-    try:
-        transcript = ai.transcribe_audio(audio_path)
-        if not transcript:
-            messages.error(request, "Não foi possível extrair fala do áudio enviado.")
-            return redirect("attendance", appointment_id=appointment.id)
-        note = ai.build_medical_note(transcript)
-        pdf_bytes = ai.render_note_pdf(appointment, note)
-    except (ai.TranscriptionUnavailable, ai.NoteGenerationUnavailable) as exc:
-        messages.error(request, str(exc))
-        return redirect("attendance", appointment_id=appointment.id)
-    except Exception as exc:  # pylint: disable=broad-except
-        messages.error(request, f"Falha ao gerar o documento: {exc}")
-        return redirect("attendance", appointment_id=appointment.id)
-    finally:
-        os.unlink(audio_path)
 
+def _build_document(appointment, audio_path, report=None):
+    """Run audio -> transcript -> note -> PDF and store it on the appointment.
+
+    ``report(stage, percent)`` is called as the pipeline advances. Raises
+    ValueError when the recording holds no recognizable speech.
+    """
+    def announce(stage, percent):
+        if report:
+            report(stage, percent)
+
+    announce("transcribing", TRANSCRIBE_START)
+    transcript = ai.transcribe_audio(
+        audio_path,
+        on_progress=lambda ratio: announce(
+            "transcribing", TRANSCRIBE_START + int(ratio * TRANSCRIBE_SHARE)
+        ),
+    )
+    if not transcript:
+        raise ValueError("Não foi possível extrair fala do áudio enviado.")
+
+    announce("structuring", 74)
+    note = ai.build_medical_note(transcript)
+
+    announce("rendering", 92)
+    pdf_bytes = ai.render_note_pdf(appointment, note)
     appointment.transcript = ai.note_to_text(note)
     appointment.transcript_pdf.save(
         f"consulta-{appointment.id}.pdf", ContentFile(pdf_bytes), save=False
     )
     appointment.transcript_created_at = timezone.now()
     appointment.save()
-    messages.success(request, "Documento da consulta gerado com sucesso.")
-    return redirect("attendance", appointment_id=appointment.id)
+    announce("done", 100)
+
+
+def _run_document_job(job_id, appointment_id, audio_path):
+    """Worker body. Never raises: failures are reported through the job."""
+    try:
+        appointment = Appointment.objects.get(id=appointment_id)
+        _build_document(
+            appointment, audio_path,
+            report=lambda stage, percent: _set_job(job_id, stage=stage, percent=percent),
+        )
+    except Exception as exc:  # pylint: disable=broad-except
+        _set_job(job_id, stage="error", percent=100, error=_document_error_text(exc))
+    finally:
+        _discard_temp(audio_path)
+        # A thread gets its own connection; leaving it open leaks it.
+        connection.close()
+
+
+def _document_error_text(exc):
+    if isinstance(exc, (ai.TranscriptionUnavailable, ai.NoteGenerationUnavailable, ValueError)):
+        return str(exc)
+    return f"Falha ao gerar o documento: {exc}"
+
+
+def _discard_temp(path):
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def _progress_response(request, appointment, job_id, job):
+    """Render the polling progress panel for a running job."""
+    stage = job.get("stage", "transcribing")
+    stage_keys = [key for key, _ in DOCUMENT_STEPS]
+    reached = stage_keys.index(stage) if stage in stage_keys else 0
+    steps = [
+        {
+            "label": label,
+            "state": "done" if index < reached else ("active" if index == reached else ""),
+        }
+        for index, (key, label) in enumerate(DOCUMENT_STEPS)
+    ]
+    return render(request, "core/transcribe_progress.html", {
+        "appointment": appointment,
+        "job_id": job_id,
+        "percent": job.get("percent", 0),
+        "label": dict(DOCUMENT_STEPS).get(stage, "Preparando…"),
+        "steps": steps,
+    })
+
+
+def _panel_response(request, appointment, success=None, error=None):
+    """Render the resting AI panel (upload form plus the current document)."""
+    return render(request, "core/transcribe_panel.html", {
+        "appointment": appointment,
+        "panel_success": success,
+        "panel_error": error,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def attendance_transcribe(request, appointment_id):
+    """Start (or, without htmx, run) the appointment document generation."""
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+
+    boosted = request.headers.get("HX-Request") == "true"
+    uploaded = request.FILES.get("audio")
+    if uploaded is None:
+        if boosted:
+            return _panel_response(request, appointment, error="Selecione um arquivo de áudio.")
+        messages.error(request, "Selecione um arquivo de áudio.")
+        return redirect("attendance", appointment_id=appointment.id)
+
+    audio_path = _save_upload_to_temp(uploaded)
+
+    # Without htmx the feature degrades to what it was: one blocking POST
+    # followed by a redirect.
+    if not boosted:
+        try:
+            _build_document(appointment, audio_path)
+        except Exception as exc:  # pylint: disable=broad-except
+            messages.error(request, _document_error_text(exc))
+            return redirect("attendance", appointment_id=appointment.id)
+        finally:
+            _discard_temp(audio_path)
+        messages.success(request, "Documento da consulta gerado com sucesso.")
+        return redirect("attendance", appointment_id=appointment.id)
+
+    job_id = uuid.uuid4().hex
+    job = _set_job(job_id, stage="transcribing", percent=TRANSCRIBE_START)
+    threading.Thread(
+        target=_run_document_job,
+        args=(job_id, appointment.id, audio_path),
+        daemon=True,
+    ).start()
+    return _progress_response(request, appointment, job_id, job)
+
+
+@login_required
+@require_http_methods(["GET"])
+def attendance_transcribe_status(request, appointment_id, job_id):
+    """Poll target: the progress panel while running, the result when done."""
+    appointment = own_attendance(request, appointment_id)
+    if appointment is None:
+        return HttpResponse(status=403)
+
+    job = cache.get(_job_key(job_id))
+    if job is None:
+        return _panel_response(request, appointment)
+    if job.get("stage") == "error":
+        return _panel_response(request, appointment, error=job.get("error"))
+    if job.get("stage") == "done":
+        appointment.refresh_from_db()
+        return _panel_response(
+            request, appointment, success="Documento da consulta gerado com sucesso."
+        )
+    return _progress_response(request, appointment, job_id, job)
 
 
 @login_required

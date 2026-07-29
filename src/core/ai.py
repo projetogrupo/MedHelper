@@ -49,11 +49,25 @@ def _get_whisper_model():
     return _CACHE["whisper"]
 
 
-def transcribe_audio(audio_path):
-    """Transcribe an audio file to text (Portuguese)."""
+def transcribe_audio(audio_path, on_progress=None):
+    """Transcribe an audio file to text (Portuguese).
+
+    ``on_progress`` is called with a 0..1 ratio as segments come out. The
+    model yields them lazily and each one carries its end timestamp, so the
+    ratio is measured against the real audio duration rather than estimated.
+    """
     model = _get_whisper_model()
-    segments, _info = model.transcribe(str(audio_path), language="pt", vad_filter=True)
-    return " ".join(segment.text.strip() for segment in segments).strip()
+    segments, info = model.transcribe(str(audio_path), language="pt", vad_filter=True)
+    duration = getattr(info, "duration", 0) or 0
+
+    parts = []
+    for segment in segments:
+        parts.append(segment.text.strip())
+        if on_progress and duration:
+            on_progress(min(segment.end / duration, 1.0))
+    if on_progress:
+        on_progress(1.0)
+    return " ".join(parts).strip()
 
 
 SYSTEM_PROMPT = """Você é um assistente que organiza transcrições de consultas \

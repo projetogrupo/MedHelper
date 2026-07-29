@@ -31,6 +31,9 @@ So far, AI assistance has primarily been used for:
   required environment through compose, adding a Postgres healthcheck, writing
   the `seed_demo` command, and slimming the image;
 * translating code artifacts (URL paths, comments, docstrings) to English;
+* redesigning the frontend (design system, loading and progress states,
+  responsive layout) and adding the progress reporting to the appointment
+  document generation;
 * general development support and debugging assistance.
 
 ## AI Inside the Product
@@ -64,6 +67,11 @@ The pipeline has three stages:
    information, to avoid fabricating clinical data.
 3. **Rendering (note to PDF)** — `reportlab` produces the final document. This
    step involves no AI.
+
+The three stages can take minutes, so they run in a background thread while
+the page polls for progress. The percentage is measured, not estimated:
+faster-whisper yields segments with their end timestamps, so the transcription
+share of the bar is the position within the real audio duration.
 
 Privacy note: only the transcribed text is sent to an external service; the
 recording stays local. The generated PDF carries a notice that it was produced
