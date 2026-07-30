@@ -140,3 +140,16 @@ The lesson worth carrying: read the **minimum** MI rather than the average, and
 treat any MI movement under 10 points as noise unless the comment ratio held
 steady. Splitting `views.py` into modules per context (booking, availability,
 attendance, AI) remains the one refactor that would move this number honestly.
+
+## Overall progression
+
+Across the five milestones the backend grew almost fivefold, from 321 to 1565
+SLOC, and complexity did not follow: average cyclomatic complexity went from
+1.35 to 2.68 and stayed rank **A** throughout, because most of what was added
+is linear I/O and rendering rather than branching. Pylint rose from 8.06 to
+**9.09/10**, the largest single jump coming from converting `models.py` from
+tabs to spaces, which removed 126 warnings at once.
+
+The one genuine degradation is concentration: `views.py` fell from MI 51.35 to
+**6.89** — the only rank-C file — because every view in the project lives in it.
+Splitting it per context is the outstanding refactor, since radon rewards comment density and averages per file.
