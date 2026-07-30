@@ -5,6 +5,7 @@ import pytest
 from django.urls import reverse
 
 from core.models import DateOverride, DateSlot, Doctor, WeeklySlot
+from core.tests.dates import next_weekday
 
 
 @pytest.mark.django_db
@@ -69,18 +70,34 @@ def test_doctor_nav_has_calendar_link(doctor_client):
 
 
 @pytest.mark.django_db
+def test_calendar_renders_the_month_grid(doctor_client):
+    """The grid itself must render whatever the date is."""
+    assert "month-grid" in doctor_client.get(reverse("calendar")).content.decode()
+
+
+@pytest.mark.django_db
 def test_calendar_projects_month_from_template(doctor_client, doctor):
+    """A weekly slot must show up as an available day on that weekday.
+
+    The month is taken from a future Monday rather than the current one: the
+    calendar only offers days ahead of now, so asking for the current month
+    fails on any week whose Mondays have already passed.
+    """
+    monday = next_weekday(0)
     WeeklySlot.objects.create(doctor=doctor, weekday=0, start_time=datetime.time(8, 0))
-    html = doctor_client.get(reverse("calendar")).content.decode()
-    assert "month-grid" in html
+    html = doctor_client.get(
+        reverse("calendar-month"), {"year": monday.year, "month": monday.month}
+    ).content.decode()
     assert "day-avail" in html
 
 
 @pytest.mark.django_db
 def test_calendar_marks_customized_days(doctor_client, doctor):
-    DateOverride.objects.create(doctor=doctor, date=datetime.date(2026, 7, 27))
+    customized = next_weekday(0)
+    DateOverride.objects.create(doctor=doctor, date=customized)
     response = doctor_client.get(
-        reverse("calendar-month"), {"year": 2026, "month": 7}
+        reverse("calendar-month"),
+        {"year": customized.year, "month": customized.month},
     )
     assert "cal-day--custom" in response.content.decode()
 
