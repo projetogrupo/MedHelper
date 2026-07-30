@@ -7,16 +7,16 @@ maintainability, size) and [pylint](https://pylint.readthedocs.io/) over
 
 ## Progression
 
-| Metric | 0 — Baseline | 1 — Backend | 2 — AI |
-|---|---|---|---|
-| Blocks analyzed (CC) | 26 | 110 | 125 |
-| Avg cyclomatic complexity | 1.35 | 2.46 | 2.55 |
-| Max cyclomatic complexity | 2 | 10 | 10 |
-| Avg maintainability index | 92.26 | 79.54 | 77.84 |
-| Min maintainability index | 51.35 | 3.49 | 4.40 |
-| Total LOC / SLOC | 471 / 321 | 1343 / 1061 | 1712 / 1338 |
-| Pylint findings | 55 | 266 | 288 |
-| Pylint score | 8.06/10 | 8.03/10 | 8.28/10 |
+| Metric | 0 — Baseline | 1 — Backend | 2 — AI | 3 — Infra | 4 — Frontend |
+|---|---|---|---|---|---|
+| Blocks analyzed (CC) | 26 | 110 | 125 | 130 | 144 |
+| Avg cyclomatic complexity | 1.35 | 2.46 | 2.55 | 2.72 | 2.68 |
+| Max cyclomatic complexity | 2 | 10 | 10 | 12 | 12 |
+| Avg maintainability index | 92.26 | 79.54 | 77.84 | 80.12 | 82.29 |
+| Min maintainability index | 51.35 | 3.49 | 4.40 | 4.40 | 6.89 |
+| Total LOC / SLOC | 471 / 321 | 1343 / 1061 | 1712 / 1338 | 1796 / 1401 | 2047 / 1565 |
+| Pylint findings | 55 | 266 | 288 | 289 | 187 |
+| Pylint score | 8.06/10 | 8.03/10 | 8.28/10 | 8.34/10 | 9.09/10 |
 
 _A new column is added for each completed milestone. The raw snapshot behind
 each column lives in `metrics/milestone-<n>-<name>/`._
@@ -79,3 +79,64 @@ went from 0 to 4 comment lines in this milestone — enough to offset the ~95
 extra source lines. The file did not get easier to maintain; it got bigger.
 Splitting it into modules (booking, availability, attendance, chat) is the
 clear next refactor, and would be the honest way to move this number.
+
+### Milestone 3 — Setup & Infrastructure
+
+Backend after the infrastructure milestone closed: `docker compose up` works
+from a clean clone, with a Postgres healthcheck, environment defaults, a
+slimmer image, and the `seed_demo` command that makes a fresh install usable
+(PR #70). Grew ~5% (1338 → 1401 SLOC) — the smallest milestone so far, since
+most of the work landed in `Dockerfile`, `docker-compose.yaml` and the README,
+which radon and pylint do not measure.
+
+- **Max complexity rose 10 → 12**, and for the first time the peak is *not* in
+  `views.py`: it is `seed_demo.Command.handle` (rank C). The command loops over
+  doctors and over weekday/time pairs to build the availability grid, and
+  guards each step so a second run changes nothing. The complexity buys
+  idempotence, which the Docker entrypoint depends on — it runs `seed_demo` on
+  every container start.
+- Pylint edged up to **8.34/10**.
+- `views.py` is unchanged at **MI 4.40**, still an order of magnitude worse
+  than the next file (`models.py`, 42.76). This milestone did not touch it.
+
+⚠️ The average MI *rose* (77.84 → 80.12), which looks like the codebase got
+more maintainable. It did not. Radon averages per file, and this milestone
+added one small, well-documented file — `seed_demo.py` at **69.93** — which
+pulls the mean up without improving a single existing file. Read the **minimum**
+MI, not the average, when asking whether the worst code got better: it sat
+still at 4.40, and it is the number that matters.
+
+### Milestone 4 — Frontend redesign and performance
+
+The last milestone: the interface redesign with progress reporting for the AI
+document (PR #72), the specialty field closed to a fixed list, and the
+pagination plus N+1 fix (PR #73). Grew ~12% (1401 → 1565 SLOC).
+
+**The real gain is pylint: 8.34 → 9.09/10**, and it is traceable to a single
+cause. Findings fell from 289 to 187 — a drop of 102 *while the code grew* —
+because `models.py` was converted from tabs to spaces, eliminating **126
+`bad-indentation` warnings** at a stroke. Partly offset by 21 new warnings in
+the test suite (`protected-access` and `redefined-outer-name`, both inherent to
+pytest fixtures and to tests that reach for private helpers).
+
+Average complexity also **fell** (2.72 → 2.68) despite 164 extra source lines,
+which is a genuine structural improvement: the listing logic was factored into
+`_by_patient_name()` and `_page()` instead of being repeated per role.
+
+⚠️ **The min-MI jump 4.40 → 6.89 is not real.** This is the third milestone in
+a row where radon's MI misleads, and this time it was measured directly:
+
+| `views.py` | MI |
+|---|---|
+| as committed | **6.89** |
+| with full-line comments stripped | **3.68** |
+
+Radon's MI includes a comment-density term, so the 12 comment lines added this
+milestone more than offset the growth. Structurally the file got **worse**: it
+went from 641 to 758 SLOC and is still the only rank-C file in the project,
+against 46.07 for the next worst (`models.py`).
+
+The lesson worth carrying: read the **minimum** MI rather than the average, and
+treat any MI movement under 10 points as noise unless the comment ratio held
+steady. Splitting `views.py` into modules per context (booking, availability,
+attendance, AI) remains the one refactor that would move this number honestly.
